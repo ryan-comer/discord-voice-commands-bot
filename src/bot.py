@@ -1,9 +1,6 @@
 import discord
 
 class Bot(discord.Client):
-    def __init__(self):
-        pass
-
     async def on_ready(self):
         print('Logged on as', self.user)
 
@@ -12,5 +9,12 @@ class Bot(discord.Client):
         if message.author == self.user:
             return
 
-        if message.content == 'ping':
-            await message.channel.send('pong')
+        # Join channel
+        if message.content == ';;join':
+            if message.author.voice.channel == None:
+                return
+            self.voiceClient = await message.author.voice.channel.connect()
+        # Leave channel
+        elif message.content == ';;leave' and self.voiceClient != None:
+            self.voiceClient.disconnect()
+            self.voiceClient = None
