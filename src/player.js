@@ -24,7 +24,6 @@ class Player {
     // Play an audio file
     play(audioFile){
         const resource = createAudioResource(join(__dirname, '../res/' + audioFile))
-        console.log(join(__dirname, '../res/' + audioFile))
 
         this.audioPlayer.play(resource);
         return entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
