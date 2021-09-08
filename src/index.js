@@ -9,9 +9,32 @@ require('dotenv').config();
 let player
 let listener
 let voiceConnection
+let currentChannel
+
+// Name of the music bot
+// Voice commands from this user are ignored
+// Bot name is used to facilitate communication from the voice command bot
+const musicBotName = 'FredBoat♪♪'
+
+// Name of this bot - ignore voice commands
+const voiceBotName = 'Jarvis'
+
+const ignoreNames = [
+    musicBotName,
+    voiceBotName
+]
 
 // Connect to a voice channel
-async function connectToChannel(channel, id){
+function connectToChannel(channel, id){
+    if(channel.id == currentChannel?.id){
+        return
+    }
+
+    // Leave current channel if in one
+    if(voiceConnection != null){
+        leaveChannel()
+    }
+
     voiceConnection = joinVoiceChannel({
         channelId: channel.id,
         guildId: channel.guild.id,
@@ -21,25 +44,65 @@ async function connectToChannel(channel, id){
 
     player = new Player(voiceConnection)
     listener = new Listener(voiceConnection)
-    listener.startListening()
-    listener.subscribeToUser(id)
+    currentChannel = channel
+
     listener.on('wakeWord', (userId) => {
+        console.log(`Wake word for: ${userId}`)
         playBeep()
     })
+
+    listener.on('textDetected', (userId, text) => {
+        console.log(`Song query for: ${userId}`)
+        processCommand(test)
+    })
+
+    refreshUsers()
 }
 
+// Leave the voice channel
+// Close the resources
 async function leaveChannel(){
+    console.log('Leaving channel')
+
     if(player != null){
         player.voiceConnection.disconnect()
     }
 
-    player = null
+    listener.close()
     listener = null
+
+    player.close()
+
+    player = null
     voiceConnection = null
+    currentChannel = null
 }
 
-async function playBeep(){
+// Refresh the users that are being listened to
+function refreshUsers(){
+    if(currentChannel == null){
+        return
+    }
+
+    console.log('Refreshing users')
+
+    listener.close()
+    currentChannel.members.forEach(member => {
+        if(ignoreNames.includes(member.displayName)){
+            // Ignore this user
+            return
+        }
+        listener.subscribeToUser(member.id)
+    });
+}
+
+function playBeep(){
     player.play('beep.wav');
+}
+
+// Queue up a song in the music player
+function processCommand(command){
+    console.log(command)
 }
 
 client.on('ready', () => {
@@ -61,5 +124,13 @@ client.on('messageCreate', (message) => {
             playBeep()
     }
 });
+
+client.on('voiceStateUpdate', (oldState, newState) => {
+    if(currentChannel != null && currentChannel.id == newState.channel_id){
+        return
+    }
+
+    refreshUsers()
+})
 
 client.login(process.env.BOT_TOKEN);

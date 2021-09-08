@@ -12,13 +12,14 @@ const { join } = require('path')
 const { createReadStream } = require('fs')
 
 class Player {
-    voiceConnection;
-    audioPlayer;
+    voiceConnection
+    audioPlayer
+    playerSubscription
 
     constructor(voiceConnection){
         this.voiceConnection = voiceConnection;
         this.audioPlayer = createAudioPlayer();
-        this.voiceConnection.subscribe(this.audioPlayer)
+        this.playerSubscription = this.voiceConnection.subscribe(this.audioPlayer)
     }
 
     // Play an audio file
@@ -27,6 +28,10 @@ class Player {
 
         this.audioPlayer.play(resource);
         return entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+    }
+
+    close(){
+        this.playerSubscription.unsubscribe()
     }
 }
 
