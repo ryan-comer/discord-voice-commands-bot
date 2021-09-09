@@ -75,7 +75,6 @@ class Listener extends EventEmitter {
             }
         })
         .pipe(new OpusDecodingStream({}, encoder))
-        //.pipe(new Uint8ToInt16Array()) // Convert to 16 bit
         .pipe(new FileWriter(commandFilePath, {
             channels: 1,
             sampleRate: 16000
@@ -179,9 +178,7 @@ class Listener extends EventEmitter {
                 config: config
             }
 
-            console.log(`Recognizing speech from ${commandFilePath}`)
             const [response] = await client.recognize(request)
-            console.dir(response)
             const transcription = response.results
             .map(result => result.alternatives[0].transcript)
             .join('\n')

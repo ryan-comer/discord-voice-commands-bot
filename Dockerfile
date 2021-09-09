@@ -6,6 +6,9 @@ WORKDIR /usr/src/voice-commands-bot
 # Install dependencies
 COPY package*.json ./
 RUN yarn
+RUN apt-get update
+RUN apt-get -y install lame
+RUN apt-get -y install ffmpeg
 
 # Bundle app source
 COPY . .
