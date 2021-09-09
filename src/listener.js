@@ -16,7 +16,7 @@ const Porcupine = require('@picovoice/porcupine-node')
 const {
     JARVIS
 } = require('@picovoice/porcupine-node/builtin_keywords')
-const { DH_NOT_SUITABLE_GENERATOR } = require('constants')
+const speech = require('@google-cloud/speech')
 
 class OpusDecodingStream extends Transform {
     encoder
@@ -60,7 +60,10 @@ class Listener extends EventEmitter {
         this.userSubscriptions = {}
     }
 
+    // Perform text-to-speech on audio until silence
     listenForCommand(userId){
+        const commandFilePath = `./recordings/${userId}.wav`
+
         console.log(`Listening for command from: ${userId}`)
         this.unsubscribeFromUser(userId)
 
@@ -71,13 +74,22 @@ class Listener extends EventEmitter {
                 duration: 2000
             }
         })
-        commandAudioStream
         .pipe(new OpusDecodingStream({}, encoder))
-        .pipe(new FileWriter('./recordings/command.wav', {
+        //.pipe(new Uint8ToInt16Array()) // Convert to 16 bit
+        .pipe(new FileWriter(commandFilePath, {
             channels: 1,
             sampleRate: 16000
         }))
         commandAudioStream.on('end', () => {
+            // Convert speech file to text
+            const thisRef = this
+            this.getSpeechToText(commandFilePath)
+            .then((commandText) => {
+                console.log(`New command text: ${commandText}`)
+                thisRef.emit('command', userId, commandText)
+            })
+
+            this.voiceConnection.receiver.subscriptions.delete(userId)
             this.subscribeToUser(userId)
         })
     }
@@ -90,7 +102,7 @@ class Listener extends EventEmitter {
             return
         }
 
-        const handle = new Porcupine([JARVIS], [0.9])
+        const handle = new Porcupine([JARVIS], [0.99])
         const encoder = new OpusEncoder(handle.sampleRate, 1)
         const audioReceiveStream = this.voiceConnection.receiver.subscribe(userId)
             .pipe(new OpusDecodingStream({}, encoder)) // Raw audio
@@ -109,6 +121,9 @@ class Listener extends EventEmitter {
                 }
             }
         })
+        audioReceiveStream.on('error', () => { console.log('error') })
+        audioReceiveStream.on('close', () => { console.log('close') })
+        audioReceiveStream.on('end', () => { console.log('end') })
 
         this.userSubscriptions[userId] = {
             "stream": audioReceiveStream,
@@ -144,6 +159,35 @@ class Listener extends EventEmitter {
             this.unsubscribeFromUser(key)
         }
         this.userSubscriptions = {}
+    }
+
+    // Helper function to get the text from the command file
+    getSpeechToText(commandFilePath){
+        return new Promise(async (resolve, reject) => {
+            const client = new speech.SpeechClient()
+
+            const audio = {
+                content: fs.readFileSync(commandFilePath).toString('base64')
+            }
+            const config = {
+                encoding: 'LINEAR16',
+                sampleRateHertz: 16000,
+                languageCode: 'en-US'
+            }
+            const request = {
+                audio: audio,
+                config: config
+            }
+
+            console.log(`Recognizing speech from ${commandFilePath}`)
+            const [response] = await client.recognize(request)
+            console.dir(response)
+            const transcription = response.results
+            .map(result => result.alternatives[0].transcript)
+            .join('\n')
+
+            resolve(transcription)
+        })
     }
 }
 

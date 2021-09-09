@@ -3,6 +3,7 @@ const { joinVoiceChannel} = require('@discordjs/voice')
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]})
 const Player = require('./player.js')
 const Listener = require('./listener.js')
+const {join} = require('path')
 
 require('dotenv').config();
 
@@ -51,9 +52,8 @@ function connectToChannel(channel, id){
         playBeep()
     })
 
-    listener.on('textDetected', (userId, text) => {
-        console.log(`Song query for: ${userId}`)
-        processCommand(test)
+    listener.on('command', (userId, command) => {
+        processCommand(command)
     })
 
     refreshUsers()
@@ -97,7 +97,8 @@ function refreshUsers(){
 }
 
 function playBeep(){
-    player.play('beep.wav');
+    const path = join(__dirname, '../res/beep.wav')
+    player.play(path)
 }
 
 // Queue up a song in the music player
