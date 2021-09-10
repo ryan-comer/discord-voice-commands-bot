@@ -41,8 +41,6 @@ function findMusicChannel(guild){
                 break
             }
         }
-
-        console.dir(musicChannel)
     })
 }
 
@@ -70,13 +68,9 @@ function connectToChannel(channel, id){
 
     listener.on('wakeWord', (userId) => {
         console.log(`Wake word for: ${userId}`)
-
         if(player.playing){
-            console.log('Ignoring command - song is playing')
-            return
-            // Player is already playing a song - stop playing
             console.log('Stopping song')
-            player.stopPlaying()
+            player.play(join(__dirname, '../res/stopping_song.wav'))
             return
         }
 
@@ -96,17 +90,21 @@ function connectToChannel(channel, id){
 async function leaveChannel(){
     console.log('Leaving channel')
 
-    if(player != null){
-        player.voiceConnection.disconnect()
+    if(listener != null){
+        listener.close()
+        listener = null
     }
 
-    listener.close()
-    listener = null
+    if(player != null){
+        player.close()
+        player = null
+    }
 
-    player.close()
+    if(voiceConnection != null){
+        voiceConnection.destroy()
+        voiceConnection = null
+    }
 
-    player = null
-    voiceConnection = null
     currentChannel = null
 }
 
@@ -122,6 +120,10 @@ function refreshUsers(){
     currentChannel.members.forEach(member => {
         if(ignoreNames.includes(member.displayName)){
             // Ignore this user
+            return
+        }
+        if(member.user.bot){
+            // Ignore bots
             return
         }
         listener.subscribeToUser(member.id)
@@ -169,16 +171,31 @@ client.on('ready', () => {
 
 // Interactions with chat messages
 client.on('messageCreate', (message) => {
+    if(message.member.user.bot){
+        // Igore bots
+        return
+    }
     switch(message.content){
         case ';;join':
             if(message.member.voice.channel != null){
-                findMusicChannel(message.guild)
-                connectToChannel(message.member.voice.channel, message.author.id)
+                if(this.voiceConnection == null){
+                    findMusicChannel(message.guild)
+                    connectToChannel(message.member.voice.channel, message.author.id)
+                }
             }
         break;
         case ';;leave':
             leaveChannel()
         break;
+        case ';;test':
+            if(player != null){
+                player.play(join(__dirname, '../res/stopping_song.wav'))
+            }
+        break;
+        case ';;stop':
+            if(player != null){
+                player.stopPlaying()
+            }
     }
 });
 

@@ -101,7 +101,7 @@ class Listener extends EventEmitter {
             return
         }
 
-        const handle = new Porcupine([JARVIS], [0.99])
+        const handle = new Porcupine([JARVIS], [1.0])
         const encoder = new OpusEncoder(handle.sampleRate, 1)
         const audioReceiveStream = this.voiceConnection.receiver.subscribe(userId)
             .pipe(new OpusDecodingStream({}, encoder)) // Raw audio

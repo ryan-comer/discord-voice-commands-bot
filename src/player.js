@@ -44,49 +44,50 @@ class Player {
     voiceConnection
     audioPlayer
     playerSubscription
-    currentSongAudioResource
     playing
 
     constructor(voiceConnection){
         this.voiceConnection = voiceConnection;
         this.audioPlayer = createAudioPlayer();
         this.playerSubscription = this.voiceConnection.subscribe(this.audioPlayer)
+        
+        this.audioPlayer.on('debug', (message) => {
+            console.log(message)
+        })
+        this.audioPlayer.on('error', (error) => {
+            console.log("ERROR")
+            console.log(error)
+        })
     }
 
     // Play an audio file
     play(audioFile){
-        const resource = createAudioResource(audioFile)
+        console.log(`Playing: ${audioFile}`)
 
+        const resource = createAudioResource(createReadStream(audioFile))
         this.audioPlayer.play(resource);
-        return entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
     }
 
     playYoutube(url){
-        const currentMusicStream = stream(url)
+        const audioStream = stream(url)
         const thisRef = this
-        currentMusicStream.on('close', () => {
+        audioStream.on('close', () => {
             console.log('Song closed')
             thisRef.playing = false
         })
-        this.currentSongAudioResource = createAudioResource(currentMusicStream)
-        this.audioPlayer.play(this.currentSongAudioResource)
+        const audioResource = createAudioResource(audioStream)
+        this.audioPlayer.play(audioResource)
         this.playing = true
-        return entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
     }
 
-    async stopPlaying(){
-        const thisRef = this
-        return new Promise((resolve, reject) => {
-            thisRef.audioPlayer.stop(true)
-            setTimeout(() => {
-                resolve()
-            }, 2000)
-        })
+    stopPlaying(){
+        this.audioPlayer.stop()
     }
 
     close(){
-        this.audioPlayer.stop()
-        this.playerSubscription.unsubscribe()
+        if(this.playerSubscription != null){
+            this.playerSubscription.unsubscribe()
+        }
     }
 }
 
