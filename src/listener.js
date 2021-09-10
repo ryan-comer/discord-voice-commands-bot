@@ -116,7 +116,6 @@ class Listener extends EventEmitter {
                 if (index != -1) {
                     console.log("Keyword Found!")
                     this.emit('wakeWord', userId)
-                    this.listenForCommand(userId)
                 }
             }
         })

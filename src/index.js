@@ -70,6 +70,17 @@ function connectToChannel(channel, id){
 
     listener.on('wakeWord', (userId) => {
         console.log(`Wake word for: ${userId}`)
+
+        if(player.playing){
+            console.log('Ignoring command - song is playing')
+            return
+            // Player is already playing a song - stop playing
+            console.log('Stopping song')
+            player.stopPlaying()
+            return
+        }
+
+        listener.listenForCommand(userId)
         playBeep()
     })
 

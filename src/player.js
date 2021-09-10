@@ -44,6 +44,8 @@ class Player {
     voiceConnection
     audioPlayer
     playerSubscription
+    currentSongAudioResource
+    playing
 
     constructor(voiceConnection){
         this.voiceConnection = voiceConnection;
@@ -53,8 +55,6 @@ class Player {
 
     // Play an audio file
     play(audioFile){
-        this.audioPlayer.stop()
-
         const resource = createAudioResource(audioFile)
 
         this.audioPlayer.play(resource);
@@ -62,12 +62,26 @@ class Player {
     }
 
     playYoutube(url){
-        this.audioPlayer.stop()
-
         const currentMusicStream = stream(url)
-        const audioResource = createAudioResource(currentMusicStream)
-        this.audioPlayer.play(audioResource)
+        const thisRef = this
+        currentMusicStream.on('close', () => {
+            console.log('Song closed')
+            thisRef.playing = false
+        })
+        this.currentSongAudioResource = createAudioResource(currentMusicStream)
+        this.audioPlayer.play(this.currentSongAudioResource)
+        this.playing = true
         return entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+    }
+
+    async stopPlaying(){
+        const thisRef = this
+        return new Promise((resolve, reject) => {
+            thisRef.audioPlayer.stop(true)
+            setTimeout(() => {
+                resolve()
+            }, 2000)
+        })
     }
 
     close(){
