@@ -19,6 +19,7 @@ const {
 } = require('@picovoice/porcupine-node/builtin_keywords')
 const speech = require('@google-cloud/speech')
 const path = require('path')
+const {spawn} = require('child_process')
 
 class OpusDecodingStream extends Transform {
     encoder
@@ -89,7 +90,7 @@ class Listener extends EventEmitter {
             this.getSpeechToText(commandFilePath)
             .then((commandText) => {
                 console.log(`New command text: ${commandText}`)
-                thisRef.emit('command', userId, commandText)
+                thisRef.emit('command', userId, commandText.toString())
             })
 
             this.voiceConnection.receiver.subscriptions.delete(userId)
@@ -193,6 +194,21 @@ class Listener extends EventEmitter {
 
     // Helper function to get the text from the command file
     getSpeechToText(commandFilePath){
+        // DEEPSPEECH Speech to Test
+        return new Promise(async (resolve, reject) => {
+            const deepspeech = spawn('deepspeech', [
+                '--model',
+                'deepspeech-0.9.3-models.pbmm',
+                '--audio',
+                commandFilePath
+            ])
+
+            deepspeech.stdout.on('data', (data) => {
+                resolve(data)
+            })
+        })
+        // GOOGLE Speech to Text
+        /*
         return new Promise(async (resolve, reject) => {
             const client = new speech.SpeechClient()
 
@@ -216,6 +232,7 @@ class Listener extends EventEmitter {
 
             resolve(transcription)
         })
+        */
     }
 }
 
