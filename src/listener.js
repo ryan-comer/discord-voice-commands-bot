@@ -14,9 +14,11 @@ const { checkWaveFile, getInt16Frames } = require('@picovoice/porcupine-node/wav
 const { WaveFile } = require('wavefile')
 const Porcupine = require('@picovoice/porcupine-node')
 const {
-    JARVIS
+    JARVIS,
+    AMERICANO
 } = require('@picovoice/porcupine-node/builtin_keywords')
 const speech = require('@google-cloud/speech')
+const path = require('path')
 
 class OpusDecodingStream extends Transform {
     encoder
@@ -53,11 +55,13 @@ class Uint8ToInt16Array extends Transform {
 class Listener extends EventEmitter {
     voiceConnection
     userSubscriptions
+    userFrameAccumulators
 
     constructor(voiceConnection) {
         super()
         this.voiceConnection = voiceConnection
         this.userSubscriptions = {}
+        this.userFrameAccumulators = {}
     }
 
     // Perform text-to-speech on audio until silence
@@ -93,6 +97,12 @@ class Listener extends EventEmitter {
         })
     }
 
+    chunkArray(array, size){
+        return Array.from({length: Math.ceil(array.length / size)}, (v, index) => {
+            return array.slice(index * size, index * size + size)
+        })
+    }
+
     // Subscribe to a specific user talking
     subscribeToUser(userId) {
         console.log(`Subscribing to: ${userId}`)
@@ -101,21 +111,43 @@ class Listener extends EventEmitter {
             return
         }
 
-        const handle = new Porcupine([JARVIS], [1.0])
+        this.userFrameAccumulators[userId] = []
+
+        const handle = new Porcupine([JARVIS], [0.5])
         const encoder = new OpusEncoder(handle.sampleRate, 1)
         const audioReceiveStream = this.voiceConnection.receiver.subscribe(userId)
-            .pipe(new OpusDecodingStream({}, encoder)) // Raw audio
-            .pipe(new Uint8ToInt16Array())  // Convert to 16 bit
+            .pipe(new prism.opus.Decoder({
+                rate: handle.sampleRate,
+                channels: 1,
+                frameSize: handle.frameLength
+            }))
+            //.pipe(new OpusDecodingStream({}, encoder)) // Raw audio
+            //.pipe(new Uint8ToInt16Array())  // Convert to 16 bit
+        //audioReceiveStream.pipe(new FileWriter(path.join(__dirname, `../recordings/${userId}.wav`)))
         audioReceiveStream.on('readable', () => {
-            let chunk
-            while (null !== (chunk = audioReceiveStream.read(handle.frameLength))) {
-                if (chunk.length < handle.frameLength) {
-                    continue
+            let data
+            while (null !== (data = audioReceiveStream.read())) {
+                // Get the frames
+                let newFrames16 = new Array(data.length / 2)
+                for(let i = 0; i < data.length; i += 2){
+                    newFrames16[i/2] = data.readInt16LE(i)
                 }
-                const index = handle.process(chunk)
-                if (index != -1) {
-                    console.log("Keyword Found!")
-                    this.emit('wakeWord', userId)
+                this.userFrameAccumulators[userId] = this.userFrameAccumulators[userId].concat(newFrames16)
+                let frames = this.chunkArray(this.userFrameAccumulators[userId], handle.frameLength)
+
+                if(frames[frames.length - 1].length !== handle.frameLength){
+                    this.userFrameAccumulators[userId] = frames.pop()
+                }else{
+                    this.userFrameAccumulators[userId] = []
+                }
+
+                // Loop through all the frames for the keyword
+                for(let frame of frames){
+                    const index = handle.process(frame)
+                    if (index != -1) {
+                        console.log("Keyword Found!")
+                        this.emit('wakeWord', userId)
+                    }
                 }
             }
         })
