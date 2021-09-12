@@ -5,6 +5,7 @@ const Player = require('./player.js')
 const Listener = require('./listener.js')
 const {join} = require('path')
 const search = require('youtube-search')
+const path = require('path')
 
 require('dotenv').config();
 
@@ -148,12 +149,12 @@ function playSong(songQuery){
             return
         }
         for(let result of results){
-            if(result.kind === 'youtube#channel' || result.kind === 'youtube#playlist'){
+            if(result.kind !== 'youtube#video'){
                 continue
             }
 
-            const songUrl = results[0].link
-            const songName = results[0].title
+            const songUrl = result.link
+            const songName = result.title
             musicChannel.send(`Playing: ${songName}`)
             player.playYoutube(songUrl)
             return
@@ -172,7 +173,13 @@ function processCommand(command){
     const commandText = commandArray.join(' ')
     switch(commandWord){
         case 'play':
-            playSong(commandText)
+            musicChannel.send(`Searching for: ${commandText}`)
+            player.play(path.join(__dirname, '../res/playing_song.wav'))
+            .then(() => playSong(commandText))
+            break
+        default:
+            player.play(path.join(__dirname, '../res/command_not_recognized.wav'))
+            break
     }
 }
 

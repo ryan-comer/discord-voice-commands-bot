@@ -62,10 +62,17 @@ class Player {
 
     // Play an audio file
     play(audioFile){
-        console.log(`Playing: ${audioFile}`)
+        return new Promise(async (resolve, reject) => {
+            console.log(`Playing: ${audioFile}`)
 
-        const resource = createAudioResource(createReadStream(audioFile))
-        this.audioPlayer.play(resource);
+            const resource = createAudioResource(createReadStream(audioFile))
+            resource.playStream.on('close', () => {
+                console.log('Play stream close')
+                resolve()
+            })
+            this.audioPlayer.play(resource)
+        })
+
     }
 
     playYoutube(url){
