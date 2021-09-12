@@ -145,11 +145,22 @@ function playSong(songQuery){
         if(err) return console.log(err)
         if(results.length == 0){
             musicChannel.send(`No results for: ${songQuery}`)
+            return
         }
-        const songUrl = results[0].link
-        const songName = results[0].title
-        musicChannel.send(`Playing: ${songName}`)
-        player.playYoutube(songUrl)
+        for(let result of results){
+            if(result.kind === 'youtube#channel' || result.kind === 'youtube#playlist'){
+                continue
+            }
+
+            const songUrl = results[0].link
+            const songName = results[0].title
+            musicChannel.send(`Playing: ${songName}`)
+            player.playYoutube(songUrl)
+            return
+        }
+
+        // No results found
+        musicChannel.send(`No results for: ${songQuery}`)
     })
 }
 
