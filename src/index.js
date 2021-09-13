@@ -9,10 +9,10 @@ const path = require('path')
 
 require('dotenv').config();
 
-let player
-let listener
-let voiceConnection
-let currentChannel
+let player = null
+let listener = null
+let voiceConnection = null
+let currentChannel = null
 
 // Name of the music bot
 // Voice commands from this user are ignored
