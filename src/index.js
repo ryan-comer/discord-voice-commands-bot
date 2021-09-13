@@ -91,6 +91,8 @@ function connectToChannel(channel, id){
 async function leaveChannel(){
     console.log('Leaving channel')
 
+    currentChannel = null
+
     if(listener != null){
         listener.close()
         listener = null
@@ -105,8 +107,6 @@ async function leaveChannel(){
         voiceConnection.destroy()
         voiceConnection = null
     }
-
-    currentChannel = null
 }
 
 // Refresh the users that are being listened to
@@ -167,13 +167,13 @@ function playSong(songQuery){
 
 // Queue up a song in the music player
 function processCommand(command){
+    musicChannel.send(`Processing Command: ${command}`)
     command = command.toLowerCase()
     const commandArray = command.split(' ')
     const commandWord = commandArray.splice(0, 1)[0]
     const commandText = commandArray.join(' ')
     switch(commandWord){
         case 'play':
-            musicChannel.send(`Searching for: ${commandText}`)
             player.play(path.join(__dirname, '../res/playing_song.wav'))
             .then(() => playSong(commandText))
             break
@@ -218,11 +218,18 @@ client.on('messageCreate', (message) => {
 });
 
 client.on('voiceStateUpdate', (oldState, newState) => {
-    if(currentChannel != null && currentChannel.id == newState.channel_id){
+    if(currentChannel === null){
+        // No connected channel
         return
     }
 
     refreshUsers()
+
+    // Leave if everyone leaves
+    // == 1 to account for the bot itself
+    if(currentChannel.members.size === 1){
+        leaveChannel()
+    }
 })
 
 client.login(process.env.BOT_TOKEN);
