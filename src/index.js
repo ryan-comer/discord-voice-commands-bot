@@ -66,7 +66,8 @@ function connectToChannel(channel, id){
     player = new Player(voiceConnection)
     listener = new Listener(voiceConnection, 
         {
-            speechToTextMethod : process.env.SPEECH_TO_TEXT_METHOD
+            speechToTextMethod : process.env.SPEECH_TO_TEXT_METHOD,
+            wakeWorkSensitivity : process.env.WAKE_WORD_SENSITIVITY
         })
     currentChannel = channel
 

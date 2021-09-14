@@ -58,6 +58,7 @@ class Listener extends EventEmitter {
     userSubscriptions
     userFrameAccumulators
     speechToTextMethod
+    wakeWordSensitivity = 0.0
 
     constructor(voiceConnection, options) {
         super()
@@ -67,6 +68,9 @@ class Listener extends EventEmitter {
 
         if(options.speechToTextMethod){
             this.speechToTextMethod = options.speechToTextMethod
+        }
+        if(options.wakeWordSensitivity){
+            this.wakeWordSensitivity = options.wakeWordSensitivity
         }
     }
 
@@ -119,7 +123,7 @@ class Listener extends EventEmitter {
 
         this.userFrameAccumulators[userId] = []
 
-        const handle = new Porcupine([JARVIS], [0.5])
+        const handle = new Porcupine([JARVIS], [this.wakeWordSensitivity])
         const encoder = new OpusEncoder(handle.sampleRate, 1)
         const audioReceiveStream = this.voiceConnection.receiver.subscribe(userId)
             .pipe(new prism.opus.Decoder({
