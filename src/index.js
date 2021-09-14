@@ -64,7 +64,10 @@ function connectToChannel(channel, id){
     });
 
     player = new Player(voiceConnection)
-    listener = new Listener(voiceConnection)
+    listener = new Listener(voiceConnection, 
+        {
+            speechToTextMethod : process.env.SPEECH_TO_TEXT_METHOD
+        })
     currentChannel = channel
 
     listener.on('wakeWord', (userId) => {

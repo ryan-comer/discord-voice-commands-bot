@@ -7,13 +7,13 @@ $CONTAINER_NAME="voice-commands-bot"
 $RECORDINGS_PATH = ""
 
 # Build the image
-docker build -t voice-commands-bot .
+docker build -t $CONTAINER_NAME .
 
 # Run the container
 # Check if the RECORDINGS_PATH variable is set
 if(($null -ne $RECORDINGS_PATH) -and ($RECORDINGS_PATH -ne "")){
-    docker run -d --name $CONTAINER_NAME -v ${RECORDINGS_PATH}:/usr/src/voice-commands-bot/recordings:rw voice-commands-bot
+    docker run -d --name $CONTAINER_NAME -v ${RECORDINGS_PATH}:/usr/src/voice-commands-bot/recordings:rw $CONTAINER_NAME
 }
 else{
-    docker run -d --name $CONTAINER_NAME voice-commands-bot
+    docker run -d --name $CONTAINER_NAME $CONTAINER_NAME
 }

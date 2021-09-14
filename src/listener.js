@@ -57,12 +57,17 @@ class Listener extends EventEmitter {
     voiceConnection
     userSubscriptions
     userFrameAccumulators
+    speechToTextMethod
 
-    constructor(voiceConnection) {
+    constructor(voiceConnection, options) {
         super()
         this.voiceConnection = voiceConnection
         this.userSubscriptions = {}
         this.userFrameAccumulators = {}
+
+        if(options.speechToTextMethod){
+            this.speechToTextMethod = options.speechToTextMethod
+        }
     }
 
     // Perform text-to-speech on audio until silence
@@ -192,9 +197,8 @@ class Listener extends EventEmitter {
         this.userSubscriptions = {}
     }
 
-    // Helper function to get the text from the command file
-    getSpeechToText(commandFilePath){
-        // DEEPSPEECH Speech to Test
+    // Use DeepSpeech speech to text
+    speechToTextLocal(commandFilePath){
         return new Promise(async (resolve, reject) => {
             const deepspeech = spawn('deepspeech', [
                 '--model',
@@ -207,8 +211,10 @@ class Listener extends EventEmitter {
                 resolve(data)
             })
         })
-        // GOOGLE Speech to Text
-        /*
+    }
+
+    // Use Google speech to text
+    speechToTextGoogle(commandFilePath){
         return new Promise(async (resolve, reject) => {
             const client = new speech.SpeechClient()
 
@@ -232,7 +238,21 @@ class Listener extends EventEmitter {
 
             resolve(transcription)
         })
-        */
+    }
+
+    // Helper function to get the text from the command file
+    getSpeechToText(commandFilePath){
+        switch(this.speechToTextMethod){
+            case 'LOCAL':
+                return this.speechToTextLocal(commandFilePath)
+            break;
+            case 'GOOGLE':
+                return this.speechToTextGoogle(commandFilePath)
+            break;
+            default:
+                console.error('No SPEECH_TO_TEXT_METHOD found')
+            break;
+        }
     }
 }
 
