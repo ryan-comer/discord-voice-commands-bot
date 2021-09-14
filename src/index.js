@@ -1,10 +1,11 @@
 const { Client, Intents, VoiceChannel } = require("discord.js")
 const { joinVoiceChannel} = require('@discordjs/voice')
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]})
-const Player = require('./player.js')
-const Listener = require('./listener.js')
+const Player = require('./Player.js')
+const Listener = require('./Listener.js')
+const CommandManager = require('./CommandManager.js')
+const PlayCommand = require('./commandPlugins/PlayCommand')
 const {join} = require('path')
-const search = require('youtube-search')
 const path = require('path')
 
 require('dotenv').config();
@@ -13,6 +14,7 @@ let player = null
 let listener = null
 let voiceConnection = null
 let currentChannel = null
+let commandManager = new CommandManager()
 
 // Name of the music bot
 // Voice commands from this user are ignored
@@ -31,6 +33,10 @@ const ignoreNames = [
     musicBotName,
     voiceBotName
 ]
+
+function registerCommands(){
+    commandManager.addPluginHandle('play', new PlayCommand())
+}
 
 // Find the music channel for chat messages
 function findMusicChannel(guild){
@@ -140,51 +146,14 @@ function playBeep(){
     player.play(path)
 }
 
-function playSong(songQuery){
-    // Find the youtube URL
-    const opts = {
-        maxResults: 5,
-        key: require('../keys/youtube_v3_api_key.json').key
-    }
-    search(songQuery, opts, (err, results) => {
-        if(err) return console.log(err)
-        if(results.length == 0){
-            musicChannel.send(`No results for: ${songQuery}`)
-            return
-        }
-        for(let result of results){
-            if(result.kind !== 'youtube#video'){
-                continue
-            }
-
-            const songUrl = result.link
-            const songName = result.title
-            musicChannel.send(`Playing: ${songName}`)
-            player.playYoutube(songUrl)
-            return
-        }
-
-        // No results found
-        musicChannel.send(`No results for: ${songQuery}`)
-    })
-}
-
 // Queue up a song in the music player
 function processCommand(command){
     musicChannel.send(`Processing Command: ${command}`)
-    command = command.toLowerCase()
-    const commandArray = command.split(' ')
-    const commandWord = commandArray.splice(0, 1)[0]
-    const commandText = commandArray.join(' ')
-    switch(commandWord){
-        case 'play':
-            player.play(path.join(__dirname, '../res/playing_song.wav'))
-            .then(() => playSong(commandText))
-            break
-        default:
-            player.play(path.join(__dirname, '../res/command_not_recognized.wav'))
-            break
-    }
+
+    commandManager.processCommand(command, {
+        musicChannel: musicChannel,
+        player: player
+    })
 }
 
 client.on('ready', () => {
@@ -236,4 +205,6 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 })
 
-client.login(process.env.BOT_TOKEN);
+registerCommands()
+
+client.login(process.env.BOT_TOKEN_DEV);

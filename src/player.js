@@ -17,6 +17,8 @@ const { OpusEncoder } = require('@discordjs/opus')
 const Lame = require('node-lame').Lame
 const encoder = new OpusEncoder(48000, 2)
 
+const {PlayCommand} = require('./commandPlugins/PlayCommand')
+
 class OpusEncodingStream extends Transform{
     constructor(options){
         super(options)
@@ -81,6 +83,10 @@ class Player {
         audioStream.on('close', () => {
             console.log('Song closed')
             thisRef.playing = false
+        })
+        audioStream.on('error', (err) => {
+            console.error(`Error playing: ${url}`)
+            console.error(err)
         })
         const audioResource = createAudioResource(audioStream)
         this.audioPlayer.play(audioResource)
