@@ -12,9 +12,13 @@ This project is built and run using Docker. There are scripts in the repo to bui
 # Configuration
 You need to create a .env file at the root directory of the bot and set the desired values. The .env file holds the configuration values for the bot. The following table describes each value:
 
+Rename the .env.example file to .env
+
 |PROPERTY_NAME|Description|Optional?|
 |---|---|---|
 |BOT_TOKEN|The bot token for the Discord bot. This is used so that the Discord servers knows which bot account this bot is logging in to. You can get this by creating a bot at https://discord.com/developers/applications. | Required
+|SPEECH_TO_TEXT_METHOD|What method to use for speech to text (some require API keys). Possible values are: (LOCAL/GOOGLE)|Required|
+|WAKE_WORD_SENSITIVITY|Value from 0.0-1.0 that determines how sensitive the wake work detection is. 0.0 is not sensitive at all and 1.0 is very sensitive.|Required|
 
 # Running
 To run the bot, run the buildandrundocker.ps1 script in the root directory. This will build the docker image and run it in a new container. After the container is running, the bot should log in to the bot account, and listen for chat messages on any of the joined servers
