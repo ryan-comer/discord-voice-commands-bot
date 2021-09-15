@@ -73,7 +73,8 @@ function connectToChannel(channel, id){
     listener = new Listener(voiceConnection, 
         {
             speechToTextMethod : process.env.SPEECH_TO_TEXT_METHOD,
-            wakeWorkSensitivity : process.env.WAKE_WORD_SENSITIVITY
+            wakeWorkSensitivity : process.env.WAKE_WORD_SENSITIVITY,
+            ibmWatsonServiceUrl: process.env.IBM_WATSON_SERVICE_URL
         })
     currentChannel = channel
 
@@ -207,4 +208,5 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 registerCommands()
 
-client.login(process.env.BOT_TOKEN_DEV);
+client.login(process.env.BOT_TOKEN);
+//client.login(process.env.BOT_TOKEN_DEV);

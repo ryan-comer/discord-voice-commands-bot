@@ -21,6 +21,10 @@ const speech = require('@google-cloud/speech')
 const path = require('path')
 const {spawn} = require('child_process')
 
+const speechToTextV1 = require('ibm-watson/speech-to-text/v1')
+const SpeechToTextV1 = require('ibm-watson/speech-to-text/v1-generated')
+const { join } = require('path')
+
 class OpusDecodingStream extends Transform {
     encoder
 
@@ -59,6 +63,7 @@ class Listener extends EventEmitter {
     userFrameAccumulators
     speechToTextMethod
     wakeWordSensitivity = 0.0
+    ibmWatsonServiceUrl
 
     constructor(voiceConnection, options) {
         super()
@@ -71,6 +76,9 @@ class Listener extends EventEmitter {
         }
         if(options.wakeWordSensitivity){
             this.wakeWordSensitivity = options.wakeWordSensitivity
+        }
+        if(options.ibmWatsonServiceUrl){
+            this.ibmWatsonServiceUrl = options.ibmWatsonServiceUrl
         }
     }
 
@@ -100,6 +108,9 @@ class Listener extends EventEmitter {
             .then((commandText) => {
                 console.log(`New command text: ${commandText}`)
                 thisRef.emit('command', userId, commandText.toString())
+            })
+            .catch(err => {
+                console.err(err)
             })
 
             this.voiceConnection.receiver.subscriptions.delete(userId)
@@ -244,6 +255,38 @@ class Listener extends EventEmitter {
         })
     }
 
+    // Use IBM Watson Speech-to-Text
+    speechToTextIBMWatson(commandFilePath){
+        return new Promise(async (resolve, reject) => {
+            // Check for the service URL
+            if(!this.ibmWatsonServiceUrl){
+                reject('IBM Watson requires a IBM_WATSON_SERVICE_URL in the .env file')
+            }
+
+            const speechToText = new SpeechToTextV1({
+                serviceUrl: this.ibmWatsonServiceUrl
+            })
+
+            const params = {
+                contentType: 'audio/wav',
+                audio: fs.createReadStream(commandFilePath),
+                wordAlternativesThreshold: 0.9
+            }
+
+            speechToText.recognize(params)
+            .then(speechRecognitionResults => {
+                const transcripttion = speechRecognitionResults.result.results
+                .map(result => result.alternatives[0].transcript)
+                join('\n')
+                
+                resolve(transcripttion)
+            })
+            .catch(err => {
+                reject(err)
+            })
+        })
+    }
+
     // Helper function to get the text from the command file
     getSpeechToText(commandFilePath){
         switch(this.speechToTextMethod){
@@ -252,6 +295,9 @@ class Listener extends EventEmitter {
             break;
             case 'GOOGLE':
                 return this.speechToTextGoogle(commandFilePath)
+            break;
+            case 'IBM_WATSON':
+                return this.speechToTextIBMWatson(commandFilePath)
             break;
             default:
                 console.error('No SPEECH_TO_TEXT_METHOD found')
