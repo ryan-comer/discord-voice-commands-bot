@@ -21,7 +21,6 @@ const speech = require('@google-cloud/speech')
 const path = require('path')
 const {spawn} = require('child_process')
 
-const speechToTextV1 = require('ibm-watson/speech-to-text/v1')
 const SpeechToTextV1 = require('ibm-watson/speech-to-text/v1-generated')
 const { join } = require('path')
 
@@ -276,8 +275,10 @@ class Listener extends EventEmitter {
             speechToText.recognize(params)
             .then(speechRecognitionResults => {
                 const transcripttion = speechRecognitionResults.result.results
-                .map(result => result.alternatives[0].transcript)
-                join('\n')
+                .map(result => result.alternatives[0].transcript
+                    .split(' ').filter(word => word != '%HESITATION').join(' ')    // Filter out %HESITATION
+                )
+                .join(' ')
                 
                 resolve(transcripttion)
             })
