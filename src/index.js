@@ -82,6 +82,7 @@ function connectToChannel(channel, id){
         console.log(`Wake word for: ${userId}`)
         if(player.playing){
             console.log('Stopping song')
+            player.stopPlaying()
             player.play(join(__dirname, '../res/stopping_song.wav'))
             return
         }
@@ -181,7 +182,7 @@ client.on('messageCreate', (message) => {
         break;
         case ';;test':
             if(player != null){
-                player.play(join(__dirname, '../res/stopping_song.wav'))
+                player.stopPlaying()
             }
         break;
         case ';;stop':

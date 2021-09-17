@@ -47,6 +47,8 @@ class Player {
     audioPlayer
     playerSubscription
     playing
+    stoppingSong = false    // Used to igonre a single resume attempt when stopping the song
+    currentUrl  // Current YouTube URL being played
 
     constructor(voiceConnection){
         this.voiceConnection = voiceConnection;
@@ -69,7 +71,6 @@ class Player {
 
             const resource = createAudioResource(createReadStream(audioFile))
             resource.playStream.on('close', () => {
-                console.log('Play stream close')
                 resolve()
             })
             this.audioPlayer.play(resource)
@@ -77,23 +78,54 @@ class Player {
 
     }
 
-    playYoutube(url){
-        const audioStream = stream(url)
-        const thisRef = this
+    // Play a youtube song
+    playYoutube(url, opt){
+        this.currentUrl = url
+
+        console.log(`Playing: ${url}`)
+        const audioStream = stream(url, opt)
+
+        const songStartTime = new Date()    
+        let errorOccured = false
+
         audioStream.on('close', () => {
             console.log('Song closed')
-            thisRef.playing = false
+            this.playing = false
+
+            // Check if the song was manually stopped
+            if(this.stoppingSong){
+                // Ignore restart attempt
+                this.stoppingSong = false
+                return
+            }
+
+            if(errorOccured && url === this.currentUrl){
+                errorOccured = false
+
+                // Recover the stream
+                const songStopTime = new Date()
+                const timeInSongMilli = (songStopTime.getTime() - songStartTime.getTime())
+                console.log(`Recovering stream for: ${url} at time: ${timeInSongSec / 1000} seconds`)
+                this.playYoutube(url, {
+                    beginning: timeInSongMilli
+                })
+            }
         })
         audioStream.on('error', (err) => {
             console.error(`Error playing: ${url}`)
             console.error(err)
+            errorOccured = true
         })
+
+        // Play the audio resource
         const audioResource = createAudioResource(audioStream)
         this.audioPlayer.play(audioResource)
         this.playing = true
+        this.songStartTime = new Date()
     }
 
     stopPlaying(){
+        this.stoppingSong = true
         this.audioPlayer.stop()
     }
 
