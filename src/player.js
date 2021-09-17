@@ -105,7 +105,7 @@ class Player {
                 // Recover the stream
                 const songStopTime = new Date()
                 const timeInSongMilli = (songStopTime.getTime() - songStartTime.getTime())
-                console.log(`Recovering stream for: ${url} at time: ${timeInSongSec / 1000} seconds`)
+                console.log(`Recovering stream for: ${url} at time: ${timeInSongMilli / 1000} seconds`)
                 this.playYoutube(url, {
                     beginning: timeInSongMilli
                 })
