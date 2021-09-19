@@ -20,6 +20,17 @@ class CommandManager{
         this.pluginMap.set(commandWord, plugin)
     }
 
+    // Let all the plugins know a wakeword was detected
+    wakeWordDetected(options){
+        for(let [key, value] of this.pluginMap){
+            if(!value.wakeWordDetected(options)){
+                return false
+            }
+        }
+
+        return true
+    }
+
     processCommand(command, options){
         command = command.toLowerCase()
         const commandArray = command.split(' ')
@@ -27,7 +38,7 @@ class CommandManager{
         const commandText = commandArray.join(' ')
 
         if(!this.pluginMap.has(commandWord)){
-            options.player.play(path.join(__dirname, '../res/command_not_recognized.wav'))
+            options.player.playFile(path.join(__dirname, '../res/command_not_recognized.wav'))
             return false
         }
 

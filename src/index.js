@@ -80,10 +80,13 @@ function connectToChannel(channel, id){
 
     listener.on('wakeWord', (userId) => {
         console.log(`Wake word for: ${userId}`)
-        if(player.playing){
-            console.log('Stopping song')
-            player.stopPlaying()
-            player.play(join(__dirname, '../res/stopping_song.wav'))
+
+        // Tell all the commands the wakeword was said
+        if(!commandManager.wakeWordDetected({
+            musicChannel: musicChannel,
+            player: player
+        })){
+            // Stop propogation of wakeword
             return
         }
 
@@ -145,7 +148,7 @@ function refreshUsers(){
 
 function playBeep(){
     const path = join(__dirname, '../res/beep.wav')
-    player.play(path)
+    player.playFile(path)
 }
 
 // Queue up a song in the music player

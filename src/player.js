@@ -46,9 +46,7 @@ class Player {
     voiceConnection
     audioPlayer
     playerSubscription
-    playing
-    stoppingSong = false    // Used to igonre a single resume attempt when stopping the song
-    currentUrl  // Current YouTube URL being played
+    isPlaying
 
     constructor(voiceConnection){
         this.voiceConnection = voiceConnection;
@@ -59,73 +57,41 @@ class Player {
             console.log(message)
         })
         this.audioPlayer.on('error', (error) => {
-            console.log("ERROR")
-            console.log(error)
+            console.error(error)
         })
     }
 
     // Play an audio file
-    play(audioFile){
+    playFile(audioFile){
         return new Promise(async (resolve, reject) => {
             console.log(`Playing: ${audioFile}`)
 
             const resource = createAudioResource(createReadStream(audioFile))
             resource.playStream.on('close', () => {
+                this.isPlaying = false
                 resolve()
             })
             this.audioPlayer.play(resource)
+            this.isPlaying = true
         })
 
     }
 
-    // Play a youtube song
-    playYoutube(url, opt){
-        this.currentUrl = url
-
-        console.log(`Playing: ${url}`)
-        const audioStream = stream(url, opt)
-
-        const songStartTime = new Date()    
-        let errorOccured = false
-
-        audioStream.on('close', () => {
-            console.log('Song closed')
-            this.playing = false
-
-            // Check if the song was manually stopped
-            if(this.stoppingSong){
-                // Ignore restart attempt
-                this.stoppingSong = false
-                return
-            }
-
-            if(errorOccured && url === this.currentUrl){
-                errorOccured = false
-
-                // Recover the stream
-                const songStopTime = new Date()
-                const timeInSongMilli = (songStopTime.getTime() - songStartTime.getTime())
-                console.log(`Recovering stream for: ${url} at time: ${timeInSongMilli / 1000} seconds`)
-                this.playYoutube(url, {
-                    beginning: timeInSongMilli
-                })
-            }
+    // Play the audio stream through the voice connection
+    playStream(audioStream){
+        return new Promise(async (resolve, reject) => {
+            // Play the audio resource
+            const audioResource = createAudioResource(audioStream)
+            audioResource.playStream.on('close', () => {
+                this.isPlaying = false
+                resolve()
+            })
+            this.audioPlayer.play(audioResource)
+            this.isPlaying = true
         })
-        audioStream.on('error', (err) => {
-            console.error(`Error playing: ${url}`)
-            console.error(err)
-            errorOccured = true
-        })
-
-        // Play the audio resource
-        const audioResource = createAudioResource(audioStream)
-        this.audioPlayer.play(audioResource)
-        this.playing = true
-        this.songStartTime = new Date()
     }
 
     stopPlaying(){
-        this.stoppingSong = true
         this.audioPlayer.stop()
     }
 

@@ -2,39 +2,109 @@ const path = require('path')
 const ICommand = require('./ICommand')
 
 const search = require('youtube-search')
+const stream = require('youtube-audio-stream')
+const {join} = require('path')
 
 class PlayCommand extends ICommand{
+    isStopping
+    errorOccured
+    currentUrl
+    songStartTime
+    isPlaying
+
     constructor(){
         super()
     }
 
-    playSong(songQuery, options){
-        // Find the youtube URL
-        const opts = {
-            maxResults: 5,
-            key: require(path.join(__dirname, '../../keys/youtube_v3_api_key.json')).key
-        }
-        search(songQuery, opts, (err, results) => {
-            if(err) return console.log(err)
-            if(results.length == 0){
-                options.musicChannel.send(`No results for: ${songQuery}`)
-                return
+    // Get the YouTube URL from the query
+    getYoutubeUrl(songQuery){
+        return new Promise(async (resolve, reject) => {
+            const opts = {
+                maxResults: 5,
+                key: require(path.join(__dirname, '../../keys/youtube_v3_api_key.json')).key
             }
-            for(let result of results){
-                if(result.kind !== 'youtube#video'){
-                    continue
+            search(songQuery, opts, (err, results) => {
+                if(err){
+                    console.error(err)
+                    resolve(null)
+                }
+                if(results.length == 0){
+                    resolve(null)
+                }
+                for(let result of results){
+                    if(result.kind !== 'youtube#video'){
+                        continue
+                    }
+
+                    resolve({
+                        songUrl: result.link,
+                        songName: result.title
+                    })
                 }
 
-                const songUrl = result.link
-                const songName = result.title
-                options.musicChannel.send(`Playing: ${songName}`)
-                options.player.playYoutube(songUrl)
+                // No results found
+                resolve(null)
+            })
+        })
+    }
+
+    playSong(options){
+        // Find the youtube URL
+        const {songUrl, songName} = options
+        const audioStream = stream(songUrl, options.streamOptions)
+        audioStream.on('close', () => {
+            this.isPlaying = false
+            // Check if the song was manually stopped
+            if(this.stoppingSong){
+                // Ignore restart attempt
+                this.stoppingSong = false
                 return
             }
 
-            // No results found
-            options.musicChannel.send(`No results for: ${songQuery}`)
+            if(this.errorOccured && songUrl === this.currentUrl){
+                this.errorOccured = false
+
+                // Recover the stream
+                const songStopTime = new Date()
+                const timeInSongMilli = (songStopTime.getTime() - this.songStartTime.getTime())
+                console.log(`Recovering stream for: ${songUrl} at time: ${timeInSongMilli / 1000} seconds`)
+                this.playSong({
+                    ...options,
+                    streamOptions: {
+                        beginning: timeInSongMilli
+                    },
+                    recovered: true
+                })
+            }
         })
+        audioStream.on('error', () => {
+            this.errorOccured = true
+        })
+
+        this.currentUrl = songUrl
+        this.songStartTime = new Date()
+
+        if(options.recovered){
+            options.player.playStream(audioStream)
+        }else{
+            options.musicChannel.send(`Playing: ${songName}`)
+            options.player.playFile(join(__dirname, '../../res/playing_song.wav'))
+            .then(() => options.player.playStream(audioStream))
+        }
+        this.isPlaying = true
+    }
+
+    wakeWordDetected(options){
+        if(this.isPlaying){
+            console.log('Stopping song')
+            this.stoppingSong = true
+            options.player.stopPlaying()
+            options.player.playFile(join(__dirname, '../../res/stopping_song.wav'))
+
+            return false
+        }
+
+        return true
     }
 
     command(commandText, options){
@@ -45,8 +115,18 @@ class PlayCommand extends ICommand{
             throw new Error('PlayCommand requires a musicChannel')
         }
 
-        options.player.play(path.join(__dirname, '../../res/playing_song.wav'))
-        .then(() => this.playSong(commandText, options))
+        this.getYoutubeUrl(commandText)
+        .then(results => {
+            if(!results){
+                options.musicChannel.send(`No results for: ${commandText}`)
+                return
+            }
+
+            this.playSong({
+                ...options,
+                ...results
+            })
+        })
     }
 }
 

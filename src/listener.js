@@ -109,7 +109,7 @@ class Listener extends EventEmitter {
                 thisRef.emit('command', userId, commandText.toString())
             })
             .catch(err => {
-                console.err(err)
+                console.error(err)
             })
 
             this.voiceConnection.receiver.subscriptions.delete(userId)

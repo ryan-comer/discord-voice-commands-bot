@@ -3,6 +3,9 @@ class ICommand {
         if(!this.command){
             throw new Error('Commands must implement command()')
         }
+        if(!this.wakeWordDetected){
+            throw new Error('Commands must implement wakeWordDetected()')
+        }
     }
 }
 
