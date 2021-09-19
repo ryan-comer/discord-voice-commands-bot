@@ -1,8 +1,8 @@
 const { Client, Intents, VoiceChannel } = require("discord.js")
 const { joinVoiceChannel} = require('@discordjs/voice')
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]})
-const Player = require('./Player.js')
-const Listener = require('./Listener.js')
+const Player = require('./player.js')
+const Listener = require('./listener.js')
 const CommandManager = require('./CommandManager.js')
 const PlayCommand = require('./commandPlugins/PlayCommand')
 const {join} = require('path')
@@ -212,5 +212,5 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 registerCommands()
 
-client.login(process.env.BOT_TOKEN);
-//client.login(process.env.BOT_TOKEN_DEV);
+//client.login(process.env.BOT_TOKEN);
+client.login(process.env.BOT_TOKEN_DEV);
