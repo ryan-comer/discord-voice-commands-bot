@@ -1,6 +1,8 @@
 const ICommand = require('./commandPlugins/ICommand')
 const path = require('path')
 
+const tts = require('./tts')
+
 class CommandManager{
     pluginMap = new Map()
 
@@ -38,7 +40,11 @@ class CommandManager{
         const commandText = commandArray.join(' ')
 
         if(!this.pluginMap.has(commandWord)){
-            options.player.playFile(path.join(__dirname, '../res/command_not_recognized.wav'))
+            tts.speak('Command not recognized')
+            .then(audioStream => {
+                options.player.playStream(audioStream)
+            })
+
             return false
         }
 

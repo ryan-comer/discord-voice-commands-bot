@@ -3,6 +3,7 @@ const { joinVoiceChannel} = require('@discordjs/voice')
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]})
 const Player = require('./player.js')
 const Listener = require('./listener.js')
+const TextToSpeech = require("./tts.js")
 const CommandManager = require('./CommandManager.js')
 const PlayCommand = require('./commandPlugins/PlayCommand')
 const {join} = require('path')
@@ -69,9 +70,9 @@ function connectToChannel(channel, id){
         selfDeaf: false
     });
 
-    player = new Player(voiceConnection)
-    listener = new Listener(voiceConnection, 
-        {
+    player = new Player({voiceConnection: voiceConnection})
+    listener = new Listener({
+            voiceConnection: voiceConnection,
             speechToTextMethod : process.env.SPEECH_TO_TEXT_METHOD,
             wakeWorkSensitivity : process.env.WAKE_WORD_SENSITIVITY,
             ibmWatsonServiceUrl: process.env.IBM_WATSON_SERVICE_URL

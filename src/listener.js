@@ -1,7 +1,5 @@
 const EventEmitter = require('events')
 const {
-    VoiceReceiver,
-    AudioReceiver,
     EndBehaviorType,
 } = require('@discordjs/voice')
 const fs = require('fs')
@@ -10,19 +8,14 @@ const prism = require('prism-media')
 const { FileWriter } = require('wav')
 const { OpusEncoder } = require('@discordjs/opus')
 
-const { checkWaveFile, getInt16Frames } = require('@picovoice/porcupine-node/wave_util')
-const { WaveFile } = require('wavefile')
 const Porcupine = require('@picovoice/porcupine-node')
 const {
-    JARVIS,
-    AMERICANO
+    JARVIS
 } = require('@picovoice/porcupine-node/builtin_keywords')
 const speech = require('@google-cloud/speech')
-const path = require('path')
 const {spawn} = require('child_process')
 
 const SpeechToTextV1 = require('ibm-watson/speech-to-text/v1-generated')
-const { join } = require('path')
 
 class OpusDecodingStream extends Transform {
     encoder
@@ -38,24 +31,6 @@ class OpusDecodingStream extends Transform {
     }
 }
 
-class Uint8ToInt16Array extends Transform {
-    constructor(options) {
-        super(options)
-    }
-
-    _transform(data, encoding, callback) {
-        let b16 = new Int16Array(data.byteLength / 2)
-        let dv = new DataView(data.buffer)
-        for (let i = 0, offset = 0; offset < data.byteLength; i++, offset += 2) {
-            let v1 = dv.getUint8(offset, true)
-            let v2 = dv.getUint8(offset + 1, true)
-            b16[i] = (((v1 & 0xff) << 8) | (v2 & 0xff))
-        }
-        this.push(Buffer.from(b16))
-        callback()
-    }
-}
-
 class Listener extends EventEmitter {
     voiceConnection
     userSubscriptions
@@ -64,9 +39,9 @@ class Listener extends EventEmitter {
     wakeWordSensitivity = 0.0
     ibmWatsonServiceUrl
 
-    constructor(voiceConnection, options) {
+    constructor(options) {
         super()
-        this.voiceConnection = voiceConnection
+        this.voiceConnection = options.voiceConnection
         this.userSubscriptions = {}
         this.userFrameAccumulators = {}
 
@@ -117,6 +92,7 @@ class Listener extends EventEmitter {
         })
     }
 
+    // Break up an array into chunks of a specified size
     chunkArray(array, size){
         return Array.from({length: Math.ceil(array.length / size)}, (v, index) => {
             return array.slice(index * size, index * size + size)
@@ -134,16 +110,12 @@ class Listener extends EventEmitter {
         this.userFrameAccumulators[userId] = []
 
         const handle = new Porcupine([JARVIS], [this.wakeWordSensitivity])
-        const encoder = new OpusEncoder(handle.sampleRate, 1)
         const audioReceiveStream = this.voiceConnection.receiver.subscribe(userId)
             .pipe(new prism.opus.Decoder({
                 rate: handle.sampleRate,
                 channels: 1,
                 frameSize: handle.frameLength
             }))
-            //.pipe(new OpusDecodingStream({}, encoder)) // Raw audio
-            //.pipe(new Uint8ToInt16Array())  // Convert to 16 bit
-        //audioReceiveStream.pipe(new FileWriter(path.join(__dirname, `../recordings/${userId}.wav`)))
         audioReceiveStream.on('readable', () => {
             let data
             while (null !== (data = audioReceiveStream.read())) {
@@ -171,9 +143,6 @@ class Listener extends EventEmitter {
                 }
             }
         })
-        audioReceiveStream.on('error', () => { console.log('error') })
-        audioReceiveStream.on('close', () => { console.log('close') })
-        audioReceiveStream.on('end', () => { console.log('end') })
 
         this.userSubscriptions[userId] = {
             "stream": audioReceiveStream,

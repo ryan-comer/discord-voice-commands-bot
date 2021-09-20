@@ -5,6 +5,8 @@ const search = require('youtube-search')
 const stream = require('youtube-audio-stream')
 const {join} = require('path')
 
+const tts = require('../tts')
+
 class PlayCommand extends ICommand{
     isStopping
     errorOccured
@@ -88,8 +90,13 @@ class PlayCommand extends ICommand{
             options.player.playStream(audioStream)
         }else{
             options.musicChannel.send(`Playing: ${songName}`)
-            options.player.playFile(join(__dirname, '../../res/playing_song.wav'))
-            .then(() => options.player.playStream(audioStream))
+            tts.speak(`Playing ${songName}`)
+            .then(ttsStream => {
+                options.player.playStream(ttsStream)
+                .then(() => {
+                    options.player.playStream(audioStream)
+                })
+            })
         }
         this.isPlaying = true
     }
@@ -99,7 +106,10 @@ class PlayCommand extends ICommand{
             console.log('Stopping song')
             this.stoppingSong = true
             options.player.stopPlaying()
-            options.player.playFile(join(__dirname, '../../res/stopping_song.wav'))
+            tts.speak('Stopping song')
+            .then(ttsStream => {
+                options.player.playStream(ttsStream)
+            })
 
             return false
         }

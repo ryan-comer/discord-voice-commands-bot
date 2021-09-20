@@ -11,6 +11,7 @@
     "@discordjs/rest": "^0.1.0-canary.0",
     "@discordjs/voice": "^0.6.0",
     "@google-cloud/speech": "^4.8.0",
+    "@google-cloud/text-to-speech": "^3.3.1",
     "@picovoice/porcupine-node": "^1.9.2",
     "discord-api-types": "^0.22.0",
     "discord.js": "^13.1.0",
