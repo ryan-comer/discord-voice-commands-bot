@@ -1,8 +1,8 @@
 const textToSpeechGoogle = require('@google-cloud/text-to-speech')
 
 const fs = require('fs')
-const { resolve } = require('path')
 const util = require('util')
+const crypto = require('crypto')
 
 require('dotenv').config();
 
@@ -23,7 +23,7 @@ class TextToSpeech{
 
     // Return an audio stream from GOOGLE tts
     async ttsGoogle(text){
-        const speechFileName = 'google_tts.mp3'
+        const speechFileName = crypto.randomBytes(20).toString('hex') + '.mp3'
         return new Promise(async (resolve, reject) => {
             // Build the request
             const request = {
@@ -41,7 +41,13 @@ class TextToSpeech{
             const writeFile = util.promisify(fs.writeFile)
             await writeFile(speechFileName, response.audioContent, 'binary')
 
-            resolve(fs.createReadStream(speechFileName))
+            const readStream = fs.createReadStream(speechFileName)
+            readStream.on('close', () => {
+                fs.unlink(speechFileName, err => {
+                    console.error(`Error deleting ${speechFileName}: ${err}`)
+                })
+            })
+            resolve(readStream)
         })
     }
     
