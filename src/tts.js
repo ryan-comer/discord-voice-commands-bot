@@ -33,7 +33,13 @@ class TextToSpeech{
                     name: 'en-GB-Wavenet-B',
                     ssmlGender: 'MALE'
                 },
-                audioConfig: {audioEncoding: 'MP3'}
+                audioConfig: {
+                    audioEncoding: 'MP3'
+                }
+            }
+
+            if(process.env.TEXT_TO_SPEECH_VOLUME_GAIN_DB){
+                request.audioConfig.volumeGainDb = parseInt(process.env.TEXT_TO_SPEECH_VOLUME_GAIN_DB)
             }
 
             // Perform the TTS
