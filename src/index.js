@@ -6,8 +6,11 @@ const Listener = require('./listener.js')
 const TextToSpeech = require("./tts.js")
 const CommandManager = require('./CommandManager.js')
 const PlayCommand = require('./commandPlugins/PlayCommand')
+const QuestionCommand = require('./commandPlugins/QuestionCommand')
 const {join} = require('path')
 const path = require('path')
+
+const tts = require('./tts')
 
 require('dotenv').config();
 
@@ -35,8 +38,12 @@ const ignoreNames = [
     voiceBotName
 ]
 
+// Add command handlers for command words
 function registerCommands(){
     commandManager.addPluginHandle('play', new PlayCommand())
+    for(let word of ['who', 'what', 'when', 'where', 'why']){
+        commandManager.addPluginHandle(word, new QuestionCommand())
+    }
 }
 
 // Find the music channel for chat messages
@@ -91,8 +98,18 @@ function connectToChannel(channel, id){
             return
         }
 
-        listener.listenForCommand(userId)
-        playBeep()
+        const user = currentChannel.members.get(userId)
+        if(!user){
+            console.error(`Can't find user with user ID: ${userId}`)
+            return
+        }
+        tts.speak(`Yes ${user.displayName}`)
+        .then(ttsStream => {
+            player.playStream(ttsStream)
+            .then(() => {
+                listener.listenForCommand(userId)
+            })
+        })
     })
 
     listener.on('command', (userId, command) => {
