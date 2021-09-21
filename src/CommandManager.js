@@ -51,6 +51,12 @@ class CommandManager{
         // Execute the command
         return this.pluginMap.get(commandWord).command(commandText, options)
     }
+
+    close(options){
+        for(let [key, value] of this.pluginMap){
+            value.close(options)
+        }
+    }
 }
 
 module.exports = CommandManager

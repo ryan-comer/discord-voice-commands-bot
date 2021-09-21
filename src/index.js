@@ -123,6 +123,10 @@ async function leaveChannel(){
         voiceConnection.destroy()
         voiceConnection = null
     }
+
+    if(commandManager != null){
+        commandManager.close()
+    }
 }
 
 // Refresh the users that are being listened to

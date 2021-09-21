@@ -104,8 +104,10 @@ class PlayCommand extends ICommand{
     wakeWordDetected(options){
         if(this.isPlaying){
             console.log('Stopping song')
+
             this.stoppingSong = true
             options.player.stopPlaying()
+
             tts.speak('Stopping song')
             .then(ttsStream => {
                 options.player.playStream(ttsStream)
@@ -137,6 +139,10 @@ class PlayCommand extends ICommand{
                 ...results
             })
         })
+    }
+
+    close(options){
+        this.isStopping = this.isPlaying = this.errorOccured = false
     }
 }
 
