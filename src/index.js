@@ -180,18 +180,43 @@ function refreshUsers(){
     });
 }
 
-function playBeep(){
-    const path = join(__dirname, '../res/beep.wav')
-    player.playFile(path)
-}
-
 // Queue up a song in the music player
 function processCommand(command){
-    musicChannel.send(`Processing Command: ${command}`)
+    botChannel.send(`Processing Command: ${command}`)
 
     commandManager.processCommand(command, {
         musicChannel: musicChannel,
+        botChannel: botChannel,
         player: player
+    })
+}
+
+// Get the redbull leaderboard scores and print to channel
+function redbull(message){
+    const playerNames = ['The Diana', 'Jamie Butler']
+    getRedbullScores({
+        leaderboardIndex: 1,
+        playerNames: playerNames
+    })
+    .then(response => {
+        const sendMessage = []
+        sendMessage.push('**Top 3 Players:**\n')
+        for(let player of response.topThree){
+            sendMessage.push(`${player.username}: ${player.score}\n`)
+        }
+        sendMessage.push('\n')
+        sendMessage.push('**Our Players**: \n')
+
+        for(let player of response.returnPlayers){
+            sendMessage.push(`${player.username}:\n`)
+            sendMessage.push(`Score: ${player.score}\n`)
+            sendMessage.push(`Place: ${player.position}\n`)
+            sendMessage.push('\n')
+        }
+        client.channels.fetch(message.channelId)
+        .then(channel => {
+            channel.send(sendMessage.join(""))
+        })
     })
 }
 
@@ -228,24 +253,7 @@ client.on('messageCreate', (message) => {
                 player.stopPlaying()
             }
         case ';;redbull':
-            const playerNames = ['The Diana', 'Jamie Butler']
-            getRedbullScores({
-                leaderboardIndex: 1,
-                playerNames: playerNames
-            })
-            .then(players => {
-                const sendMessage = []
-                for(let player of players){
-                    sendMessage.push(`${player.username}:\n`)
-                    sendMessage.push(`Score: ${player.score}\n`)
-                    sendMessage.push(`Place: ${player.position}\n`)
-                    sendMessage.push('\n')
-                }
-                client.channels.fetch(message.channelId)
-                .then(channel => {
-                    channel.send(sendMessage.join(""))
-                })
-            })
+            redbull(message)
         break;
     }
 });

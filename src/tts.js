@@ -31,7 +31,7 @@ class TextToSpeech{
                 voice: {
                     languageCode: 'en-GB',
                     name: 'en-GB-Wavenet-B',
-                    ssmlGender: 'MALE'
+                    ssmlGender: 'MALE',
                 },
                 audioConfig: {
                     audioEncoding: 'MP3'

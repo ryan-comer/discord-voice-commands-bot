@@ -8,6 +8,7 @@ async function getRedbullScores(options){
         axios.get(url)
         .then(response => {
             const players = response.data.campaign.Leaderboards.Rounds[options.leaderboardIndex].Players
+            const topThree = players.slice(0, 3)
             for(let player of players){
                 if(options.playerNames.includes(player.username)){
                     // Add the player score to the return scores
@@ -15,7 +16,7 @@ async function getRedbullScores(options){
                 }
             }
 
-            resolve(returnPlayers)
+            resolve({returnPlayers, topThree})
         })
     })
 }
