@@ -9,6 +9,7 @@ const PlayCommand = require('./commandPlugins/PlayCommand')
 const QuestionCommand = require('./commandPlugins/QuestionCommand')
 const {join} = require('path')
 const path = require('path')
+const {getRedbullScores} = require('./redbull')
 
 const tts = require('./tts')
 
@@ -28,10 +29,9 @@ const musicBotName = 'FredBoat♪♪'
 // Name of this bot - ignore voice commands
 const voiceBotName = 'Jarvis'
 
-// Name of the music channel for music commands
-const musicChannelName = 'music'
 // Handle to the music channel
 let musicChannel
+let botChannel
 
 const ignoreNames = [
     musicBotName,
@@ -51,8 +51,20 @@ function findMusicChannel(guild){
     guild.channels.fetch()
     .then(channels => {
         for(let [key, value] of channels){
-            if(value.name == musicChannelName){
+            if(value.name == process.env.MUSIC_CHANNEL_NAME){
                 musicChannel = value
+                break
+            }
+        }
+    })
+}
+
+function findBotChannel(guild){
+    guild.channels.fetch()
+    .then(channels => {
+        for(let [key, value] of channels){
+            if(value.name == process.env.BOT_CHANNEL_NAME){
+                botChannel = value
                 break
             }
         }
@@ -198,6 +210,7 @@ client.on('messageCreate', (message) => {
             if(message.member.voice.channel != null){
                 if(this.voiceConnection == null){
                     findMusicChannel(message.guild)
+                    findBotChannel(message.guild)
                     connectToChannel(message.member.voice.channel, message.author.id)
                 }
             }
@@ -214,6 +227,26 @@ client.on('messageCreate', (message) => {
             if(player != null){
                 player.stopPlaying()
             }
+        case ';;redbull':
+            const playerNames = ['The Diana', 'Jamie Butler']
+            getRedbullScores({
+                leaderboardIndex: 1,
+                playerNames: playerNames
+            })
+            .then(players => {
+                const sendMessage = []
+                for(let player of players){
+                    sendMessage.push(`${player.username}:\n`)
+                    sendMessage.push(`Score: ${player.score}\n`)
+                    sendMessage.push(`Place: ${player.position}\n`)
+                    sendMessage.push('\n')
+                }
+                client.channels.fetch(message.channelId)
+                .then(channel => {
+                    channel.send(sendMessage.join(""))
+                })
+            })
+        break;
     }
 });
 

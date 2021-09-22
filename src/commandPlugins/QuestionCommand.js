@@ -64,6 +64,8 @@ class QuestionCommand extends ICommand{
                 .then(ttsStream => {
                     options.player.playStream(ttsStream)
                 })
+
+                return
             }
 
             // Get first result
