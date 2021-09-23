@@ -50,10 +50,20 @@ class RedBullCommand extends ICommand{
 
             if(options.messageChannel){
                 options.messageChannel.send(message.join(""))
+                .then(messageRef => {
+                    setTimeout(() => {
+                        messageRef.delete()
+                    }, 1000 * 30)
+                })
             }
             else{
                 // Post to bot channel
                 options.botChannel.send(message.join(""))
+                .then(messageRef => {
+                    setTimeout(() => {
+                        messageRef.delete()
+                    }, 1000 * 30)
+                })
             }
         })
     }

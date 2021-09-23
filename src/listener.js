@@ -17,8 +17,6 @@ const {spawn} = require('child_process')
 
 const SpeechToTextV1 = require('ibm-watson/speech-to-text/v1-generated')
 
-console.log(process.env.WAKE_WORD_SENSITIVITY)
-
 class OpusDecodingStream extends Transform {
     encoder
 
