@@ -17,6 +17,8 @@ const {spawn} = require('child_process')
 
 const SpeechToTextV1 = require('ibm-watson/speech-to-text/v1-generated')
 
+console.log(process.env.WAKE_WORD_SENSITIVITY)
+
 class OpusDecodingStream extends Transform {
     encoder
 
@@ -35,25 +37,12 @@ class Listener extends EventEmitter {
     voiceConnection
     userSubscriptions
     userFrameAccumulators
-    speechToTextMethod
-    wakeWordSensitivity = 0.0
-    ibmWatsonServiceUrl
 
     constructor(options) {
         super()
         this.voiceConnection = options.voiceConnection
         this.userSubscriptions = {}
         this.userFrameAccumulators = {}
-
-        if(options.speechToTextMethod){
-            this.speechToTextMethod = options.speechToTextMethod
-        }
-        if(options.wakeWordSensitivity){
-            this.wakeWordSensitivity = options.wakeWordSensitivity
-        }
-        if(options.ibmWatsonServiceUrl){
-            this.ibmWatsonServiceUrl = options.ibmWatsonServiceUrl
-        }
     }
 
     // Perform text-to-speech on audio until silence
@@ -109,7 +98,7 @@ class Listener extends EventEmitter {
 
         this.userFrameAccumulators[userId] = []
 
-        const handle = new Porcupine([JARVIS], [this.wakeWordSensitivity])
+        const handle = new Porcupine([JARVIS], [parseFloat(process.env.WAKE_WORD_SENSITIVITY)])
         const audioReceiveStream = this.voiceConnection.receiver.subscribe(userId)
             .pipe(new prism.opus.Decoder({
                 rate: handle.sampleRate,
@@ -227,12 +216,12 @@ class Listener extends EventEmitter {
     speechToTextIBMWatson(commandFilePath){
         return new Promise(async (resolve, reject) => {
             // Check for the service URL
-            if(!this.ibmWatsonServiceUrl){
+            if(!process.env.IBM_WATSON_SERVICE_URL){
                 reject('IBM Watson requires a IBM_WATSON_SERVICE_URL in the .env file')
             }
 
             const speechToText = new SpeechToTextV1({
-                serviceUrl: this.ibmWatsonServiceUrl
+                serviceUrl: process.env.IBM_WATSON_SERVICE_URL
             })
 
             const params = {
@@ -259,7 +248,7 @@ class Listener extends EventEmitter {
 
     // Helper function to get the text from the command file
     getSpeechToText(commandFilePath){
-        switch(this.speechToTextMethod){
+        switch(process.env.SPEECH_TO_TEXT_METHOD){
             case 'LOCAL':
                 return this.speechToTextLocal(commandFilePath)
             break;

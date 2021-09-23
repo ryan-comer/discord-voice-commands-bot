@@ -1,3 +1,5 @@
+require('dotenv-defaults').config()
+
 const { Client, Intents, VoiceChannel } = require("discord.js")
 const { joinVoiceChannel} = require('@discordjs/voice')
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]})
@@ -7,13 +9,12 @@ const TextToSpeech = require("./tts.js")
 const CommandManager = require('./CommandManager.js')
 const PlayCommand = require('./commandPlugins/PlayCommand')
 const QuestionCommand = require('./commandPlugins/QuestionCommand')
+const RedbullCommand = require("./commandPlugins/RedbullCommand")
 const {join} = require('path')
 const path = require('path')
 const {getRedbullScores} = require('./redbull')
 
 const tts = require('./tts')
-
-require('dotenv').config();
 
 let player = null
 let listener = null
@@ -21,53 +22,35 @@ let voiceConnection = null
 let currentChannel = null
 let commandManager = new CommandManager()
 
-// Name of the music bot
-// Voice commands from this user are ignored
-// Bot name is used to facilitate communication from the voice command bot
-const musicBotName = 'FredBoat♪♪'
-
-// Name of this bot - ignore voice commands
-const voiceBotName = 'Jarvis'
-
 // Handle to the music channel
 let musicChannel
 let botChannel
 
-const ignoreNames = [
-    musicBotName,
-    voiceBotName
-]
-
 // Add command handlers for command words
 function registerCommands(){
     commandManager.addPluginHandle('play', new PlayCommand())
-    for(let word of ['who', 'what', 'when', 'where', 'why']){
+    for(let word of ['who', 'what', 'when', 'where', 'why', 'how', 'do', 'is', 'was', 'will', 'would', 'can', 'could', 'did', 'should', 'whose', 'which', 'whom', 'are']){
         commandManager.addPluginHandle(word, new QuestionCommand())
     }
+    commandManager.addPluginHandle('redbull', new RedbullCommand())
 }
+
 
 // Find the music channel for chat messages
-function findMusicChannel(guild){
-    guild.channels.fetch()
-    .then(channels => {
-        for(let [key, value] of channels){
-            if(value.name == process.env.MUSIC_CHANNEL_NAME){
-                musicChannel = value
-                break
+async function findTextChannels(guild){
+    return new Promise((resolve, reject) => {
+        guild.channels.fetch()
+        .then(channels => {
+            for(let [key, value] of channels){
+                if(value.name == process.env.MUSIC_CHANNEL_NAME){
+                    musicChannel = value
+                }
+                if(value.name == process.env.BOT_CHANNEL_NAME){
+                    botChannel = value
+                }
             }
-        }
-    })
-}
-
-function findBotChannel(guild){
-    guild.channels.fetch()
-    .then(channels => {
-        for(let [key, value] of channels){
-            if(value.name == process.env.BOT_CHANNEL_NAME){
-                botChannel = value
-                break
-            }
-        }
+        })
+        resolve()
     })
 }
 
@@ -90,12 +73,7 @@ function connectToChannel(channel, id){
     });
 
     player = new Player({voiceConnection: voiceConnection})
-    listener = new Listener({
-            voiceConnection: voiceConnection,
-            speechToTextMethod : process.env.SPEECH_TO_TEXT_METHOD,
-            wakeWorkSensitivity : process.env.WAKE_WORD_SENSITIVITY,
-            ibmWatsonServiceUrl: process.env.IBM_WATSON_SERVICE_URL
-        })
+    listener = new Listener({voiceConnection: voiceConnection})
     currentChannel = channel
 
     listener.on('wakeWord', (userId) => {
@@ -125,7 +103,11 @@ function connectToChannel(channel, id){
     })
 
     listener.on('command', (userId, command) => {
-        processCommand(command)
+        processCommand({
+            command,
+            userId,
+            commandType: 'voice'
+        })
     })
 
     refreshUsers()
@@ -168,10 +150,6 @@ function refreshUsers(){
 
     listener.close()
     currentChannel.members.forEach(member => {
-        if(ignoreNames.includes(member.displayName)){
-            // Ignore this user
-            return
-        }
         if(member.user.bot){
             // Ignore bots
             return
@@ -180,11 +158,12 @@ function refreshUsers(){
     });
 }
 
-// Queue up a song in the music player
-function processCommand(command){
-    botChannel.send(`Processing Command: ${command}`)
+// Process a command from a user
+function processCommand(options){
+    botChannel.send(`Processing Command: ${options.command}`)
 
-    commandManager.processCommand(command, {
+    commandManager.processCommand({
+        ...options,
         musicChannel: musicChannel,
         botChannel: botChannel,
         player: player
@@ -225,17 +204,18 @@ client.on('ready', () => {
 });
 
 // Interactions with chat messages
-client.on('messageCreate', (message) => {
+client.on('messageCreate', async (message) => {
     if(message.member.user.bot){
         // Igore bots
         return
     }
+
+    await findTextChannels(message.guild)
+
     switch(message.content){
         case ';;join':
             if(message.member.voice.channel != null){
                 if(this.voiceConnection == null){
-                    findMusicChannel(message.guild)
-                    findBotChannel(message.guild)
                     connectToChannel(message.member.voice.channel, message.author.id)
                 }
             }
@@ -252,8 +232,18 @@ client.on('messageCreate', (message) => {
             if(player != null){
                 player.stopPlaying()
             }
-        case ';;redbull':
-            redbull(message)
+        default:
+            if(message.content.startsWith(';;')){
+                message.channel.fetch(message.channelId)
+                .then(channel => {
+                    processCommand({
+                        command: message.content.substr(2),
+                        userId: message.member.id,
+                        messageChannel: channel,
+                        commandType: 'text'
+                    })
+                })
+            }
         break;
     }
 });

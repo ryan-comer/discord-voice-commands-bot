@@ -4,8 +4,6 @@ const fs = require('fs')
 const util = require('util')
 const crypto = require('crypto')
 
-require('dotenv').config();
-
 const client = new textToSpeechGoogle.TextToSpeechClient()
 
 // Class used to generate audio from text
@@ -34,12 +32,9 @@ class TextToSpeech{
                     ssmlGender: 'MALE',
                 },
                 audioConfig: {
-                    audioEncoding: 'MP3'
+                    audioEncoding: 'MP3',
+                    volumeGainDb: parseInt(process.env.TEXT_TO_SPEECH_VOLUME_GAIN_DB)
                 }
-            }
-
-            if(process.env.TEXT_TO_SPEECH_VOLUME_GAIN_DB){
-                request.audioConfig.volumeGainDb = parseInt(process.env.TEXT_TO_SPEECH_VOLUME_GAIN_DB)
             }
 
             // Perform the TTS

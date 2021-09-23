@@ -33,8 +33,8 @@ class CommandManager{
         return true
     }
 
-    processCommand(command, options){
-        command = command.toLowerCase()
+    processCommand(options){
+        const command = options.command.toLowerCase()
         const commandArray = command.split(' ')
         const commandWord = commandArray.splice(0, 1)[0]
         const commandText = commandArray.join(' ')
@@ -49,7 +49,10 @@ class CommandManager{
         }
 
         // Execute the command
-        return this.pluginMap.get(commandWord).command(commandText, options)
+        return this.pluginMap.get(commandWord).command({
+            ...options,
+            commandText
+        })
     }
 
     close(options){

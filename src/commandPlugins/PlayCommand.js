@@ -119,7 +119,7 @@ class PlayCommand extends ICommand{
         return true
     }
 
-    command(commandText, options){
+    command(options){
         if(!options.player){
             throw new Error('PlayCommand requires a player')
         }
@@ -127,10 +127,10 @@ class PlayCommand extends ICommand{
             throw new Error('PlayCommand requires a musicChannel')
         }
 
-        this.getYoutubeUrl(commandText)
+        this.getYoutubeUrl(options.commandText)
         .then(results => {
             if(!results){
-                options.musicChannel.send(`No results for: ${commandText}`)
+                options.musicChannel.send(`No results for: ${options.commandText}`)
                 return
             }
 

@@ -55,8 +55,8 @@ class QuestionCommand extends ICommand{
         return true
     }
 
-    command(commandText, options){
-        this.googleSearch(commandText)
+    command(options){
+        this.googleSearch(options.commandText)
         .then(results => {
             // Check for results
             if(results.length == 0){
@@ -74,15 +74,22 @@ class QuestionCommand extends ICommand{
             //const resultText = results[0].snippet.split('.')[0]
             const text = `According to ${hostName}. ${resultText}`
 
-            this.isSpeaking = true
-            tts.speak(text)
-            .then(ttsStream => {
-                this.speakingStream = ttsStream
-                options.player.playStream(ttsStream)
-                .then(() => {
-                    this.isSpeaking = false
+            if(options.botChannel){
+                options.botChannel.send(`**Question:** ${options.command}`)
+                options.botChannel.send(`**Answer:** ${text}`)
+            }
+
+            if(options.commandType === 'voice'){
+                this.isSpeaking = true
+                tts.speak(text)
+                .then(ttsStream => {
+                    this.speakingStream = ttsStream
+                    options.player.playStream(ttsStream)
+                    .then(() => {
+                        this.isSpeaking = false
+                    })
                 })
-            })
+            }
         })
     }
 
