@@ -121,16 +121,16 @@ class PlayCommand extends ICommand{
 
     command(options){
         if(!options.player){
-            throw new Error('PlayCommand requires a player')
-        }
-        if(!options.musicChannel){
-            throw new Error('PlayCommand requires a musicChannel')
+            options.messageChannel.send(`Not in a voice channel. Please type ;;join first`)
+            return
         }
 
         this.getYoutubeUrl(options.commandText)
         .then(results => {
             if(!results){
-                options.musicChannel.send(`No results for: ${options.commandText}`)
+                if(options.musicChannel){
+                    options.musicChannel.send(`No results for: ${options.commandText}`)
+                }
                 return
             }
 

@@ -60,10 +60,14 @@ class QuestionCommand extends ICommand{
         .then(results => {
             // Check for results
             if(results.length == 0){
-                tts.speak('I don\'t know')
-                .then(ttsStream => {
-                    options.player.playStream(ttsStream)
-                })
+                if(options.player){
+                    tts.speak('I don\'t know')
+                    .then(ttsStream => {
+                        options.player.playStream(ttsStream)
+                    })
+                }else{
+                    options.messageChannel.send('I don\'t know')
+                }
 
                 return
             }
@@ -74,7 +78,10 @@ class QuestionCommand extends ICommand{
             //const resultText = results[0].snippet.split('.')[0]
             const text = `According to ${hostName}. ${resultText}`
 
-            if(options.botChannel){
+            if(options.messageChannel){
+                options.messageChannel.send(`**Question:** ${options.command}`)
+                options.messageChannel.send(`**Answer:** ${text}`)
+            }else if(options.botChannel){
                 options.botChannel.send(`**Question:** ${options.command}`)
                 options.botChannel.send(`**Answer:** ${text}`)
             }

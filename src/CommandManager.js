@@ -24,13 +24,14 @@ class CommandManager{
 
     // Let all the plugins know a wakeword was detected
     wakeWordDetected(options){
+        let returnValue = true
         for(let [key, value] of this.pluginMap){
             if(!value.wakeWordDetected(options)){
-                return false
+                returnValue = false
             }
         }
 
-        return true
+        return returnValue
     }
 
     processCommand(options){
@@ -40,10 +41,14 @@ class CommandManager{
         const commandText = commandArray.join(' ')
 
         if(!this.pluginMap.has(commandWord)){
-            tts.speak('Command not recognized')
-            .then(audioStream => {
-                options.player.playStream(audioStream)
-            })
+            if(options.player){
+                tts.speak('Command not recognized')
+                .then(audioStream => {
+                    options.player.playStream(audioStream)
+                })
+            }else{
+                options.messageChannel.send('Command not recognized')
+            }
 
             return false
         }

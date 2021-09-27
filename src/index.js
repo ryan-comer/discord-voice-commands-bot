@@ -157,7 +157,11 @@ function refreshUsers(){
 
 // Process a command from a user
 function processCommand(options){
+    if(botChannel){
     botChannel.send(`Processing Command: ${options.command}`)
+    }
+
+    console.log(`Processing command: ${options.command}`)
 
     commandManager.processCommand({
         ...options,
@@ -180,7 +184,7 @@ client.on('messageCreate', async (message) => {
 
     await findTextChannels(message.guild)
 
-    switch(message.content){
+    switch(message.content.toLowerCase()){
         case ';;join':
             if(message.member.voice.channel != null){
                 if(this.voiceConnection == null){
@@ -205,6 +209,7 @@ client.on('messageCreate', async (message) => {
                 message.channel.fetch(message.channelId)
                 .then(channel => {
                     processCommand({
+                        message: message,
                         command: message.content.substr(2),
                         userId: message.member.id,
                         messageChannel: channel,

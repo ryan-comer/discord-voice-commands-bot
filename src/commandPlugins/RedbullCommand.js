@@ -28,7 +28,7 @@ class RedBullCommand extends ICommand{
     }
 
     command(options){
-        const playerNames = ['The Diana', 'Jamie Butler']
+        const playerNames = ['omgdudewtf', 'Jamie Butler']
         getRedbullScores({
             leaderboardIndex: 1,
             playerNames
@@ -53,6 +53,7 @@ class RedBullCommand extends ICommand{
                 .then(messageRef => {
                     setTimeout(() => {
                         messageRef.delete()
+                        options.message.delete()
                     }, 1000 * 30)
                 })
             }
@@ -62,6 +63,7 @@ class RedBullCommand extends ICommand{
                 .then(messageRef => {
                     setTimeout(() => {
                         messageRef.delete()
+                        options.message.delete()
                     }, 1000 * 30)
                 })
             }
