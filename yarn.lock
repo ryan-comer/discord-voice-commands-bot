@@ -501,7 +501,7 @@ axios-cookiejar-support@^1.0.0:
     is-redirect "^1.0.0"
     pify "^5.0.0"
 
-axios@^0.21.1, axios@^0.21.4:
+axios@^0.21.0, axios@^0.21.1, axios@^0.21.4:
   version "0.21.4"
   resolved "https://registry.npmjs.org/axios/-/axios-0.21.4.tgz"
   integrity sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==
@@ -2035,11 +2035,6 @@ qs@~6.5.2:
   resolved "https://registry.npmjs.org/qs/-/qs-6.5.2.tgz"
   integrity sha512-N5ZAX4/LxJmF+7wN74pUD6qAh9/wnvdQcjq9TZjevvXzSUo7bfmw91saqMjzGS2xq91/odN2dW/WOl7qQHNDGA==
 
-querystring@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.1.tgz#40d77615bb09d16902a85c3e38aa8b5ed761c2dd"
-  integrity sha512-wkvS7mL/JMugcup3/rMitHmd9ecIGd2lhFhK9N3UUQ450h66d1r3Y9nvXzQAW1Lq+wyx61k/1pfKS5KuKiyEbg==
-
 react-is@^17.0.1:
   version "17.0.2"
   resolved "https://registry.npmjs.org/react-is/-/react-is-17.0.2.tgz"
@@ -2591,6 +2586,13 @@ youtube-audio-stream@^0.3.16:
   dependencies:
     fluent-ffmpeg "2.1.2"
     ytdl-core "4.9.1"
+
+youtube-search-api@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/youtube-search-api/-/youtube-search-api-1.0.10.tgz#18ca885a7416ad60d3121fbcc5b51469028c1d01"
+  integrity sha512-4SWkiQEa0Vg+7usiLRxVme7mjpUoQAHDVhk2a7E/JZbYuvmy1JnmJSGguBlbm2MxEawRFZJ6SFdng7frX5a0rA==
+  dependencies:
+    axios "^0.21.0"
 
 youtube-search@^1.1.6:
   version "1.1.6"

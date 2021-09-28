@@ -28,7 +28,7 @@ class RedBullCommand extends ICommand{
     }
 
     command(options){
-        const playerNames = ['omgdudewtf', 'Jamie Butler']
+        const playerNames = ['omgdudewtf', 'Jamie Butler', 'Onyankopon']
         getRedbullScores({
             leaderboardIndex: 1,
             playerNames

@@ -10,6 +10,7 @@ const CommandManager = require('./CommandManager.js')
 const PlayCommand = require('./commandPlugins/PlayCommand')
 const QuestionCommand = require('./commandPlugins/QuestionCommand')
 const RedbullCommand = require("./commandPlugins/RedbullCommand")
+const RadioCommand = require('./commandPlugins/RadioCommand')
 
 const tts = require('./tts')
 
@@ -30,6 +31,7 @@ function registerCommands(){
         commandManager.addPluginHandle(word, new QuestionCommand())
     }
     commandManager.addPluginHandle('redbull', new RedbullCommand())
+    commandManager.addPluginHandle('radio', new RadioCommand())
 }
 
 
@@ -158,7 +160,7 @@ function refreshUsers(){
 // Process a command from a user
 function processCommand(options){
     if(botChannel){
-    botChannel.send(`Processing Command: ${options.command}`)
+        botChannel.send(`Processing Command: ${options.command}`)
     }
 
     console.log(`Processing command: ${options.command}`)
@@ -238,5 +240,5 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 registerCommands()
 
-//client.login(process.env.BOT_TOKEN);
-client.login(process.env.BOT_TOKEN_DEV);
+client.login(process.env.BOT_TOKEN);
+//client.login(process.env.BOT_TOKEN_DEV);

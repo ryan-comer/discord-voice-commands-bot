@@ -32,6 +32,7 @@
     "wavefile": "^11.0.0",
     "youtube-audio-stream": "^0.3.16",
     "youtube-search": "^1.1.6",
+    "youtube-search-api": "^1.0.10",
     "ytdl-core": "^4.9.1"
   }
 }
