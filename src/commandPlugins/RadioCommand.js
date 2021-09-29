@@ -143,7 +143,12 @@ class RadioCommand extends ICommand{
 
             // Create radio messasge
             let message = []
-            message.push(`**Radio based on ${this.spotifySongBase.name}:**\n`)
+            if(this.spotifySongBase.artists?.length > 0){
+                message.push(`**Radio based on ${this.spotifySongBase.name} - ${this.spotifySongBase.artists[0].name}:**\n`)
+            }
+            else{
+                message.push(`**Radio based on ${this.spotifySongBase.name}:**\n`)
+            }
             this.songQueue.songs.forEach(song => {
                 if(song.artists?.length > 0){
                     message.push(`${song.name} - ${song.artists[0].name}\n`)

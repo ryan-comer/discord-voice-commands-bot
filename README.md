@@ -24,6 +24,8 @@ Rename the .env.example file to .env
 |IBM_WATSON_SERVICE_URL|Service URL for the IBM Speech to Text service. Get from https://cloud.ibm.com/apidocs/assistant/assistant-v2?code=node#endpoint-cloud depending on where you set up your service.|Required if SPEECH_TO_TEXT_METHOD is set to IBM_WATSON||
 |MUSIC_CHANNEL_NAME|Name of the music channel for the server. Used to post messages about playlists.|Optional|music|
 |BOT_CHANNEL_NAME|Name of the bot channel for the discord. Used to post generic bot messages (e.g. `Processing Command: ${command_text}`)|Optional|bot|
+|SPOTIFY_CLIENT_ID|Client ID for access to the Spotify API. This is used to find similar songs in the radio command|Required for the radio command||
+|SPOTIFY_CLIENT_SECRET|Client Secret for access to the Spotify API. This is used to find similar songs in the radio command|Required for the radio command||
 
 # Running
 To run the bot, run the buildandrundocker.ps1 script in the root directory. This will build the docker image and run it in a new container. After the container is running, the bot should log in to the bot account, and listen for chat messages on any of the joined servers
@@ -41,4 +43,5 @@ Voice and text commands are handled through the same command handler. This means
 |join|Have the bot join the voice channel of the user who typed the command|;;join|
 |leave|Have the bot leave the current voice channel|;;leave|
 |play|Stream the audio for a YouTube video to the channel|;;play music best hits|
+|radio|Generate and play a radio station based on a song query. The bot will check Spotify for similar songs based on your query, and queue them up in the song queue. The music channel will show the current radio station and what the currently played song is|;;radio lincoln park in the end|
 |who, what, when, where, why, how, is, do, was, will, would, can, could, did, should, whose, which, whom, are|Ask a question to the bot. The bot will search Google and speak the snippet to the channel|;;what is the largest tech company in the world|

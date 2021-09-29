@@ -28,8 +28,10 @@ class SpotifyClient{
             .catch(async err => {
                 if(err.response.status == 401){
                     // re-get authorization
-                    console.log('Reauthorizing')
                     await this.getAuthToken()
+
+                    // Apply the header
+                    axiosConfig.headers.Authorization = `Bearer ${this.spotifyAccessToken}`
 
                     // Try again
                     axios(axiosConfig)
