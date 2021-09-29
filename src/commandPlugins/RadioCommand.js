@@ -355,6 +355,7 @@ class RadioCommand extends ICommand{
             console.log(`Playing: ${videoUrl}`)
             audioStream = stream(videoUrl, options.streamOptions)
         }catch(err){
+            console.error('Error getting YouTube stream')
             console.error(err)
             this.playNextSong(options)
             return
@@ -362,8 +363,6 @@ class RadioCommand extends ICommand{
 
         return new Promise((resolve, reject) => {
             audioStream.on('close', () => {
-                console.log(`errorOccured: ${this.errorOccured}`)
-                console.log(`stoppingSong: ${this.stoppingSong}`)
                 this.playing = false
                 // Check if the song was manually stopped
                 if(this.stoppingSong){
@@ -405,7 +404,15 @@ class RadioCommand extends ICommand{
 
             this.currentUrl = videoUrl
             this.songStartTime = new Date()
-            options.player.playStream(audioStream)
+
+            try{
+                options.player.playStream(audioStream)
+            }catch(err) {
+                console.log("Error playing YouTube stream")
+                console.error(err)
+                this.playNextSong(options)
+                return
+            }
             this.playing = true
         })
     }
