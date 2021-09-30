@@ -27,6 +27,8 @@ class SpotifyClient{
             })
             .catch(async err => {
                 if(err.response.status == 401){
+                    console.log('Reauthorizing')
+
                     // re-get authorization
                     await this.getAuthToken()
 

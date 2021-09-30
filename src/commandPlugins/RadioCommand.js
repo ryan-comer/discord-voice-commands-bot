@@ -1,14 +1,9 @@
 const ICommand = require('./ICommand')
-const axios = require('axios')
-
-const stream = require('youtube-audio-stream')
-const search = require('youtube-search')
-
 const tts = require('../tts')
-const path = require('path')
-
 const SpotifyClient = require('../spotify')
 const youtube = require('../youtube')
+const stream = require('youtube-audio-stream')
+
 
 // Helper function to shuffle the array
 function shuffleArray(array){
@@ -70,8 +65,6 @@ class RadioCommand extends ICommand{
     playing
     stoppingSong
     errorOccured
-    currentUrl
-    songStartTime
     radioMessage
     currentSongMessage
     
@@ -87,7 +80,6 @@ class RadioCommand extends ICommand{
         this.playing = false
         this.stoppingSong = false
         this.errorOccured = false
-        this.currentUrl = ''
         this.songStartTime = null
         this.spotifySongBase = null
     }
@@ -124,7 +116,7 @@ class RadioCommand extends ICommand{
         // Clear the current song
         this.songQueue.clear()
 
-        this.generatePlaylist(options.commandText, 20)
+        this.generatePlaylist(options.commandText, parseInt(process.env.RADIO_NUM_SONGS))
         .then(() => {
             // No songs found
             if(this.songQueue.songs.length == 0){
@@ -142,31 +134,13 @@ class RadioCommand extends ICommand{
             }
 
             // Create radio messasge
-            let message = []
-            if(this.spotifySongBase.artists?.length > 0){
-                message.push(`**Radio based on ${this.spotifySongBase.name} - ${this.spotifySongBase.artists[0].name}:**\n`)
-            }
-            else{
-                message.push(`**Radio based on ${this.spotifySongBase.name}:**\n`)
-            }
-            this.songQueue.songs.forEach(song => {
-                if(song.artists?.length > 0){
-                    message.push(`${song.name} - ${song.artists[0].name}\n`)
-                }else{
-                    message.push(`${song.name}\n`)
-                }
-            })
-            if(options.musicChannel){
-                options.musicChannel.send(message.join(''))
-                .then(sentMessage => {
-                    this.radioMessage = sentMessage
-                })
-            }
+            this.createRadioMessage(options)
 
             // Start the playlist
             this.startPlaylist(options)
         })
         .catch(err => {
+            // Check for errors generating the radio station
             if(err.name === 'NoSpotifySongsError'){
                 if(options.commandType == 'voice'){
                     tts.speak(`Couldn\'t find any spotify songs for ${options.commandText}`)
@@ -232,6 +206,30 @@ class RadioCommand extends ICommand{
         this.errorOccured = this.stoppingSong = this.playing = false
     }
 
+    // Create a message that says the current radio
+    createRadioMessage(options){
+        let message = []
+        if(this.spotifySongBase.artists?.length > 0){
+            message.push(`**Radio based on ${this.spotifySongBase.name} - ${this.spotifySongBase.artists[0].name}:**\n`)
+        }
+        else{
+            message.push(`**Radio based on ${this.spotifySongBase.name}:**\n`)
+        }
+        this.songQueue.songs.forEach(song => {
+            if(song.artists?.length > 0){
+                message.push(`${song.name} - ${song.artists[0].name}\n`)
+            }else{
+                message.push(`${song.name}\n`)
+            }
+        })
+        if(options.musicChannel){
+            options.musicChannel.send(message.join(''))
+            .then(sentMessage => {
+                this.radioMessage = sentMessage
+            })
+        }
+    }
+
 
     // Generate a playlist from the query
     async generatePlaylist(songQuery, numSongs){
@@ -266,31 +264,39 @@ class RadioCommand extends ICommand{
             message = `Starting radio based on ${this.spotifySongBase.name}`
         }
 
-        return new Promise((resolve, reject) => {
-            if(options.commandType == 'voice'){
-                tts.speak(message)
-                .then(ttsStream => {
-                    options.player.playStream(ttsStream)
-                    .then(() => {
-                        this.playNextSong(options)
-                        .then(() => {
-                            resolve()
-                        })
-                        .catch(err => {
-                            reject(err)
-                        })
-                    })
+        if(options.commandType == 'voice'){
+            tts.speak(message)
+            .then(ttsStream => {
+                options.player.playStream(ttsStream)
+                .then(() => {
+                    this.playNextSong(options)
+                })
+            })
+        }else{
+            this.playNextSong(options)
+        }
+    }
+
+    updateCurrentSongMessage(options, song){
+        // Handle currently playing song message
+        if(options.musicChannel){
+            if(this.currentSongMessage){
+                this.currentSongMessage.delete()
+                this.currentSongMessage = null
+            }
+
+            if(song.artists?.length > 0){
+                options.musicChannel.send(`**Currently Playing: ${song.name} - By ${song.artists[0].name}**\n`)
+                .then(sentMessage => {
+                    this.currentSongMessage = sentMessage
                 })
             }else{
-                this.playNextSong(options)
-                .then(() => {
-                    resolve()
-                })
-                .catch(err => {
-                    reject(err)
+                options.musicChannel.send(`**Currently Playing: ${song.name}**\n`)
+                .then(sentMessage => {
+                    this.currentSongMessage = sentMessage
                 })
             }
-        })
+        }
     }
 
     // Play the next song in the queue
@@ -306,25 +312,8 @@ class RadioCommand extends ICommand{
                     this.playNextSong(options)
                 }
 
-                // Handle currently playing song message
-                if(options.musicChannel){
-                    if(this.currentSongMessage){
-                        this.currentSongMessage.delete()
-                        this.currentSongMessage = null
-                    }
-
-                    if(song.artists?.length > 0){
-                        options.musicChannel.send(`**Currently Playing: ${song.name} - By ${song.artists[0].name}**\n`)
-                        .then(sentMessage => {
-                            this.currentSongMessage = sentMessage
-                        })
-                    }else{
-                        options.musicChannel.send(`**Currently Playing: ${song.name}**\n`)
-                        .then(sentMessage => {
-                            this.currentSongMessage = sentMessage
-                        })
-                    }
-                }
+                // Update the message saying the currently playing song
+                this.updateCurrentSongMessage(options, song)
 
                 this.playSong({
                     ...results,
@@ -372,38 +361,11 @@ class RadioCommand extends ICommand{
                     return
                 }
 
-                // Check if we need to recover the song
-                /*
-                if(this.errorOccured && videoUrl === this.currentUrl){
-                    this.errorOccured = false
-
-                    // Recover the stream
-                    const songStopTime = new Date()
-                    const timeInSongMilli = (songStopTime.getTime() - this.songStartTime.getTime())
-                    console.log(`Recovering stream for: ${videoUrl} at time: ${timeInSongMilli / 1000} seconds`)
-                    this.playSong({
-                        ...options,
-                        streamOptions: {
-                            beginning: timeInSongMilli
-                        },
-                        recovered: true
-                    })
-                    resolve()
-                    return
-                }
-                */
-
                 // Song finished normally - signal next song
                 resolve({
                     nextSong: true
                 })
             })
-            audioStream.on('error', () => {
-                this.errorOccured = true
-            })
-
-            this.currentUrl = videoUrl
-            this.songStartTime = new Date()
 
             try{
                 options.player.playStream(audioStream)
