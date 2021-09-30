@@ -3,6 +3,7 @@ const textToSpeechGoogle = require('@google-cloud/text-to-speech')
 const fs = require('fs')
 const util = require('util')
 const crypto = require('crypto')
+const {spawn} = require('child_process')
 
 const client = new textToSpeechGoogle.TextToSpeechClient()
 
@@ -19,7 +20,7 @@ class TextToSpeech{
         this.ttsMethod = options.ttsMethod
     }
 
-    // Return an audio stream from GOOGLE tts
+    // Return an audio stream from GOOGLE text-to-speech
     async ttsGoogle(text){
         const speechFileName = crypto.randomBytes(20).toString('hex') + '.mp3'
         return new Promise(async (resolve, reject) => {
@@ -30,6 +31,10 @@ class TextToSpeech{
                     languageCode: 'en-GB',
                     name: 'en-GB-Wavenet-B',
                     ssmlGender: 'MALE',
+                   /*
+                    name: `ru-RU-Wavenet-A`,
+                    ssmlGender: 'FEMALE',
+                    */
                 },
                 audioConfig: {
                     audioEncoding: 'MP3',
@@ -51,12 +56,48 @@ class TextToSpeech{
             resolve(readStream)
         })
     }
+
+    // Return an audi ostream from a local text-to-speech
+    async ttsLocal(text){
+        const speechFileName = crypto.randomBytes(20).toString('hex') + '.wav'
+
+        return new Promise((resolve, reject) => {
+            const tts = spawn('tts', [
+                '--text',
+                text,
+                '--out_path',
+                speechFileName
+            ])
+
+            tts.on('exit', (code, signal) => {
+                // Try to open the file
+                try{
+                    const ttsStream = fs.createReadStream(speechFileName)
+                    ttsStream.on('close', () => {
+                        // Delete the file once the stream is read
+                        fs.unlink(speechFileName, err => {
+                            console.error(`Error deleting: ${speechFileName}: ${err}`)
+                        })
+                    })
+                    resolve(ttsStream)
+                }catch(error){
+                    console.error(`Error reading text-to-speech file: ${error}`)
+                    reject(error)
+                }
+            })
+        })
+
+    }
     
     // Get an audio stream from the provided text
     async speak(text){
         switch(this.ttsMethod){
             case 'GOOGLE':
                 return this.ttsGoogle(text)
+            case 'LOCAL':
+                return this.ttsLocal(text)
+            default:
+                console.error(`SPEECH_TO_TEXT_METHOD ${this.ttsMethod} not recognized`)
         }
     }
 }

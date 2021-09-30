@@ -223,7 +223,7 @@ class RadioCommand extends ICommand{
             }
         })
         if(options.musicChannel){
-            options.musicChannel.send(message.join(''))
+            options.musicChannel.send(message.join('').substr(0, 2000))
             .then(sentMessage => {
                 this.radioMessage = sentMessage
             })

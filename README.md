@@ -4,6 +4,8 @@ This repo is a framework for a voice command Discord bot. Voice and text command
 # Building
 This project is built and run using Docker. There are scripts in the repo to build the docker image and run a new container (buildandrundocker.ps1). Before building - go through [Configuration](#configuration) to set up your .env file and [Cloud Services](#cloud-services) for any cloud services you're using. Look at the top of the script for configuration parameters. The following parameters are available:
 
+The first time building will take a while.
+
 |Parameter Name|Description|
 |---|---|
 |CONTAINER_NAME|The name of the Docker container that is created|
@@ -18,7 +20,7 @@ Rename the '.env.example' file to '.env' to get started.
 |---|---|---|---|
 |BOT_TOKEN|The bot token for the Discord bot. This is used so that the Discord servers knows which bot account this bot is logging in to. You can get this by creating a bot at https://discord.com/developers/applications.|Required||
 |SPEECH_TO_TEXT_METHOD|What method to use for speech to text (some require API keys). Possible values are: (LOCAL/GOOGLE/IBM_WATSON)|Optional|LOCAL|
-|TEXT_TO_SPEECH_METHOD|What method to use for text to speech (some require API keys). Possible values are: (GOOGLE)|Optional|GOOGLE|
+|TEXT_TO_SPEECH_METHOD|What method to use for text to speech (some require API keys). Possible values are: (LOCAL/GOOGLE)|Optional|GOOGLE|
 |TEXT_TO_SPEECH_VOLUME_GAIN_DB|Optional parameter for Google text-to-speech. Default value is 0, range is (-10, 10). 6dB is approximately twice as loud as 0. -6dB is approximately half as loud as 0.|Optional|0|
 |WAKE_WORD_SENSITIVITY|Value from 0.0-1.0 that determines how sensitive the wake work detection is. 0.0 is not sensitive at all and 1.0 is very sensitive.|Optional|0.5|
 |IBM_WATSON_SERVICE_URL|Service URL for the IBM Speech to Text service. Get from https://cloud.ibm.com/apidocs/assistant/assistant-v2?code=node#endpoint-cloud depending on where you set up your service.|Required if SPEECH_TO_TEXT_METHOD is set to IBM_WATSON||
