@@ -48,6 +48,13 @@ To run the bot, run the buildandrundocker.ps1 script in the root directory. This
 # Voice Commands
 After joining a voice channel, the bot will listen for a wake word from any user (each user audio stream is separate). If the wake word is heard on the user's audio stream, the bot will respond with "Yes {USER_NAME}". The bot will then listen for a command on that user audio stream. The command audio will be saved to ./recordings/{userId}.wav. After 2 seconds of silence, the command audio will be processed using speech-to-text. The first word of the command denotes the command type (e.g. 'play').
 
+Some commands have special behavior is the wake word is detected:
+
+* Play command - Stop the song if a song is currently playing
+   * If a song is stopped, the bot will stop listening for commands (you have to say the wake word again for a command)
+* Radio command - Stop the radio if the radio is currently playing
+   * If the radio is stopped, the bot will stop listening for commands (you have to say the wake word again for a command)
+
 # Text Commands
 Voice and text commands are handled through the same command handler. This means that any voice command can also be a text command. For example, you can say 'Jarvis. Play music best hits' or simply type ';;play music best hits' to achieve the same result.
 
