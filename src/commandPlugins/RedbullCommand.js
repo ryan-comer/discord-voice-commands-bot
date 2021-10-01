@@ -1,6 +1,8 @@
 const axios = require('axios')
 const ICommand = require('./ICommand')
 
+const { deleteMessage } = require('../utils')
+
 async function getRedbullScores(options){
     const url = `https://soloq.boundaryrb.com/api/campaigns/1`
     const returnPlayers = []
@@ -52,8 +54,8 @@ class RedBullCommand extends ICommand{
                 options.messageChannel.send(message.join(""))
                 .then(messageRef => {
                     setTimeout(() => {
-                        messageRef.delete()
-                        options.message.delete()
+                        deleteMessage(messageRef)
+                        deleteMessage(options.message)
                     }, 1000 * 30)
                 })
             }
@@ -62,8 +64,8 @@ class RedBullCommand extends ICommand{
                 options.botChannel.send(message.join(""))
                 .then(messageRef => {
                     setTimeout(() => {
-                        messageRef.delete()
-                        options.message.delete()
+                        deleteMessage(messageRef)
+                        deleteMessage(options.message)
                     }, 1000 * 30)
                 })
             }

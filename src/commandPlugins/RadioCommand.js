@@ -3,6 +3,7 @@ const tts = require('../tts')
 const SpotifyClient = require('../spotify')
 const youtube = require('../youtube')
 const stream = require('youtube-audio-stream')
+const { deleteMessage } = require('../utils')
 
 
 // Helper function to shuffle the array
@@ -178,12 +179,12 @@ class RadioCommand extends ICommand{
             })
 
             if(this.radioMessage){
-                this.radioMessage.delete()
+                deleteMessage(this.radioMessage)
                 this.radioMessage = null
             }
 
             if(this.currentSongMessage){
-                this.currentSongMessage.delete()
+                deleteMessage(this.currentSongMessage)
                 this.currentSongMessage = null
             }
 
@@ -195,11 +196,11 @@ class RadioCommand extends ICommand{
 
     close(options){
         if(this.radioMessage){
-            this.radioMessage.delete()
+            deleteMessage(this.radioMessage)
             this.radioMessage = null
         }
         if(this.currentSongMessage){
-            this.currentSongMessage.delete()
+            deleteMessage(this.currentSongMessage)
             this.currentSongMessage = null
         }
         this.songQueue.clear()
@@ -281,7 +282,7 @@ class RadioCommand extends ICommand{
         // Handle currently playing song message
         if(options.musicChannel){
             if(this.currentSongMessage){
-                this.currentSongMessage.delete()
+                deleteMessage(this.currentSongMessage)
                 this.currentSongMessage = null
             }
 

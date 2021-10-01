@@ -23,7 +23,16 @@ class PlayCommand extends ICommand{
     playSong(options){
         // Find the youtube URL
         const {videoUrl, videoName} = options
-        const audioStream = stream(videoUrl, options.streamOptions)
+        console.log(`Playing: ${videoUrl}\twith options: ${options.streamOptions}`)
+
+        let audioStream
+        try{
+            audioStream = stream(videoUrl, options.streamOptions)
+        }catch(error){
+            console.error(`Error getting YouTube stream: ${error}`)
+            return
+        }
+
         audioStream.on('close', () => {
             this.isPlaying = false
             // Check if the song was manually stopped
