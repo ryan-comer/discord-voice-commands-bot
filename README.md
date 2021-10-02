@@ -29,6 +29,13 @@ Rename the '.env.example' file to '.env' to get started.
 |SPOTIFY_CLIENT_ID|Client ID for access to the Spotify API. This is used to find similar songs in the radio command|Required for the radio command||
 |SPOTIFY_CLIENT_SECRET|Client Secret for access to the Spotify API. This is used to find similar songs in the radio command|Required for the radio command||
 
+# Local Services
+Both TEXT_TO_SPEECH_METHOD and SPEECH_TO_TEXT_METHOD have a 'LOCAL' option. The container for Jarvis contains software for performing speech-to-text and text-to-speech, and selecting the 'LOCAL' option will use these local services.
+
+These options are completely free and do not require API keys.
+
+Depending on the specs of your system where the bot is running, both of these tasks could take a while to complete (on my system, using LOCAL speech-to-text and text-to-speech takes about 4 seconds for speech-to-text and 6 seconds for text-to-speech). Using cloud services is much quicker and more accurate than using the local services.
+
 # Cloud Services
 
 ## Google

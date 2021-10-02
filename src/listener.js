@@ -12,10 +12,8 @@ const Porcupine = require('@picovoice/porcupine-node')
 const {
     JARVIS
 } = require('@picovoice/porcupine-node/builtin_keywords')
-const speech = require('@google-cloud/speech')
-const {spawn} = require('child_process')
 
-const SpeechToTextV1 = require('ibm-watson/speech-to-text/v1-generated')
+const stt = require('./stt')
 
 class OpusDecodingStream extends Transform {
     encoder
@@ -43,7 +41,7 @@ class Listener extends EventEmitter {
         this.userFrameAccumulators = {}
     }
 
-    // Perform text-to-speech on audio until silence
+    // Perform speech-to-text on audio until silence
     listenForCommand(userId){
         const commandFilePath = `./recordings/${userId}.wav`
 
@@ -64,11 +62,10 @@ class Listener extends EventEmitter {
         }))
         commandAudioStream.on('end', () => {
             // Convert speech file to text
-            const thisRef = this
-            this.getSpeechToText(commandFilePath)
+            stt.getText(commandFilePath)
             .then((commandText) => {
                 console.log(`New command text: ${commandText}`)
-                thisRef.emit('command', userId, commandText.toString())
+                this.emit('command', userId, commandText.toString())
             })
             .catch(err => {
                 console.error(err)
@@ -167,100 +164,6 @@ class Listener extends EventEmitter {
         this.userSubscriptions = {}
     }
 
-    // Use DeepSpeech speech to text
-    speechToTextLocal(commandFilePath){
-        return new Promise(async (resolve, reject) => {
-            const deepspeech = spawn('deepspeech', [
-                '--model',
-                'deepspeech-0.9.3-models.pbmm',
-                '--audio',
-                commandFilePath
-            ])
-
-            deepspeech.stdout.on('data', (data) => {
-                resolve(data)
-            })
-        })
-    }
-
-    // Use Google speech to text
-    speechToTextGoogle(commandFilePath){
-        return new Promise(async (resolve, reject) => {
-            const client = new speech.SpeechClient()
-
-            const audio = {
-                content: fs.readFileSync(commandFilePath).toString('base64')
-            }
-            const config = {
-                encoding: 'LINEAR16',
-                sampleRateHertz: 16000,
-                languageCode: 'en-US'
-            }
-            const request = {
-                audio: audio,
-                config: config
-            }
-
-            const [response] = await client.recognize(request)
-            const transcription = response.results
-            .map(result => result.alternatives[0].transcript)
-            .join('\n')
-
-            resolve(transcription)
-        })
-    }
-
-    // Use IBM Watson Speech-to-Text
-    speechToTextIBMWatson(commandFilePath){
-        return new Promise(async (resolve, reject) => {
-            // Check for the service URL
-            if(!process.env.IBM_WATSON_SERVICE_URL){
-                reject('IBM Watson requires a IBM_WATSON_SERVICE_URL in the .env file')
-            }
-
-            const speechToText = new SpeechToTextV1({
-                serviceUrl: process.env.IBM_WATSON_SERVICE_URL
-            })
-
-            const params = {
-                contentType: 'audio/wav',
-                audio: fs.createReadStream(commandFilePath),
-                wordAlternativesThreshold: 0.9
-            }
-
-            speechToText.recognize(params)
-            .then(speechRecognitionResults => {
-                const transcripttion = speechRecognitionResults.result.results
-                .map(result => result.alternatives[0].transcript
-                    .split(' ').filter(word => word != '%HESITATION').join(' ')    // Filter out %HESITATION
-                )
-                .join(' ')
-                
-                resolve(transcripttion)
-            })
-            .catch(err => {
-                reject(err)
-            })
-        })
-    }
-
-    // Helper function to get the text from the command file
-    getSpeechToText(commandFilePath){
-        switch(process.env.SPEECH_TO_TEXT_METHOD){
-            case 'LOCAL':
-                return this.speechToTextLocal(commandFilePath)
-            break;
-            case 'GOOGLE':
-                return this.speechToTextGoogle(commandFilePath)
-            break;
-            case 'IBM_WATSON':
-                return this.speechToTextIBMWatson(commandFilePath)
-            break;
-            default:
-                console.error('No SPEECH_TO_TEXT_METHOD found')
-            break;
-        }
-    }
 }
 
 module.exports = Listener

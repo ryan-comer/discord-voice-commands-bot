@@ -16,6 +16,9 @@ class TextToSpeech{
             console.error('TEXT_TO_SPEECH_METHOD in .env required for TTS to work')
             return
         }
+        if(!['LOCAL', 'GOOGLE'].includes(options.ttsMethod)){
+            console.error(`Unrecognized TEXT_TO_SPEECH method: ${options.ttsMethod}`)
+        }
 
         this.ttsMethod = options.ttsMethod
     }
@@ -97,7 +100,7 @@ class TextToSpeech{
             case 'LOCAL':
                 return this.ttsLocal(text)
             default:
-                console.error(`SPEECH_TO_TEXT_METHOD ${this.ttsMethod} not recognized`)
+                console.error(`TEXT_TO_SPEECH_METHOD ${this.ttsMethod} not recognized`)
         }
     }
 }
