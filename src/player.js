@@ -25,18 +25,8 @@ class Player {
 
     // Play an audio file
     playFile(audioFile){
-        return new Promise(async (resolve, reject) => {
             console.log(`Playing: ${audioFile}`)
-
-            const resource = createAudioResource(createReadStream(audioFile))
-            resource.playStream.on('close', () => {
-                this.isPlaying = false
-                resolve()
-            })
-            this.audioPlayer.play(resource)
-            this.isPlaying = true
-        })
-
+        return this.playStream(createReadStream(audioFile))
     }
 
     // Play the audio stream through the voice connection

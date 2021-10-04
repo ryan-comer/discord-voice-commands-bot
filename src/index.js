@@ -75,6 +75,7 @@ function connectToChannel(channel, id){
     listener = new Listener({voiceConnection: voiceConnection})
     currentChannel = channel
 
+    // Set up the listener callbacks
     listener.on('wakeWord', (userId) => {
         console.log(`Wake word for: ${userId}`)
 
@@ -184,7 +185,7 @@ client.on('messageCreate', async (message) => {
         return
     }
 
-    await findTextChannels(message.guild)
+    await findTextChannels(message.guild)   // Get the text channels the bot interacts with
 
     switch(message.content.toLowerCase()){
         case ';;join':
@@ -196,11 +197,6 @@ client.on('messageCreate', async (message) => {
         break;
         case ';;leave':
             leaveChannel()
-        break;
-        case ';;test':
-            if(player != null){
-                player.stopPlaying()
-            }
         break;
         case ';;stop':
             if(player != null){

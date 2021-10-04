@@ -60,12 +60,10 @@ class SongQueue {
 class RadioCommand extends ICommand{
     spotifySongBase
     songQueue
+    currentState
 
     spotifyClient
 
-    playing
-    stoppingSong
-    errorOccured
     radioMessage
     currentSongMessage
     
@@ -78,25 +76,33 @@ class RadioCommand extends ICommand{
 
         this.spotifyClient = new SpotifyClient()
         this.songQueue = new SongQueue()
-        this.playing = false
-        this.stoppingSong = false
-        this.errorOccured = false
         this.songStartTime = null
         this.spotifySongBase = null
+        this.currentState = 'IDLE'
     }
 
     command(options){
-        if(this.playing){
+        console.log(`Current state: ${this.currentState}`)
+        if(this.currentState === 'STARTING'){
+            // Previous radio is still starting - ignore this request
+            return
+        }
+        if(this.currentState === 'PLAYING'){
+            // Stop previous radio to start a new one
             this.stopPlaying(options)
         }
 
+        this.currentState = 'STARTING'
+
         if(!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET){
             console.error('Radio command requires SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env')
+            this.currentState = 'IDLE'
             return
         }
 
         if(!options.player){
             options.messageChannel.send('Radio command requires that I\'m in a voice channel')
+            this.currentState = 'IDLE'
             return
         }
 
@@ -111,6 +117,8 @@ class RadioCommand extends ICommand{
             if(options.messageChannel){
                 messageChannel.send('Please say a song')
             }
+
+            this.currentState = 'IDLE'
             return
         }
 
@@ -131,6 +139,7 @@ class RadioCommand extends ICommand{
                     })
                 }
 
+                this.currentState = 'IDLE'
                 return
             }
 
@@ -153,12 +162,19 @@ class RadioCommand extends ICommand{
                     options.musicChannel.send(`Couldn\'t find any Spotify songs for ${options.commandText}`)
                 }
             }
+
+            this.currentState = 'IDLE'
         })
     }
 
     wakeWordDetected(options){
-        if(this.playing){
+        if(this.currentState === 'STARTING'){
+            return false
+        }
+
+        if(this.currentState === 'PLAYING'){
             this.stopPlaying(options)
+            this.currentState = 'IDLE'
             return false
         }
 
@@ -167,10 +183,10 @@ class RadioCommand extends ICommand{
 
     // Stop playing the radio
     stopPlaying(options){
-        if(this.playing){
+        if(this.currentState === 'PLAYING'){
             console.log('Stopping radio')
 
-            this.stoppingSong = true
+            this.currentState = 'STOPPING'
             options.player.stopPlaying()
 
             tts.speak('Stopping radio')
@@ -187,14 +203,12 @@ class RadioCommand extends ICommand{
                 deleteMessage(this.currentSongMessage)
                 this.currentSongMessage = null
             }
-
-            return false
         }
-
-        return true
     }
 
     close(options){
+        this.stopPlaying()
+
         if(this.radioMessage){
             deleteMessage(this.radioMessage)
             this.radioMessage = null
@@ -203,8 +217,9 @@ class RadioCommand extends ICommand{
             deleteMessage(this.currentSongMessage)
             this.currentSongMessage = null
         }
+
         this.songQueue.clear()
-        this.errorOccured = this.stoppingSong = this.playing = false
+        this.currentState = 'IDLE'
     }
 
     // Create a message that says the current radio
@@ -303,6 +318,12 @@ class RadioCommand extends ICommand{
     // Play the next song in the queue
     playNextSong(options){
         const song = this.songQueue.next()
+
+        if(!song){
+            console.log('Song queue empty')
+            return Promise.resolve()
+        }
+
         const songQuery = (song.artists?.length > 0) ? `${song.name} by ${song.artists[0].name}` : `${song.name}`
 
         return new Promise((resolve, reject) => {
@@ -353,13 +374,10 @@ class RadioCommand extends ICommand{
 
         return new Promise((resolve, reject) => {
             audioStream.on('close', () => {
-                this.playing = false
                 // Check if the song was manually stopped
-                if(this.stoppingSong){
+                if(this.currentState === 'STOPPING' || this.currentState === 'IDLE'){
                     // Ignore restart attempt
-                    this.stoppingSong = false
-                    resolve()
-                    return
+                    return resolve()
                 }
 
                 // Song finished normally - signal next song
@@ -369,6 +387,7 @@ class RadioCommand extends ICommand{
             })
 
             try{
+                this.currentState = 'PLAYING'
                 options.player.playStream(audioStream)
             }catch(err) {
                 console.log("Error playing YouTube stream")
@@ -376,7 +395,6 @@ class RadioCommand extends ICommand{
                 this.playNextSong(options)
                 return
             }
-            this.playing = true
         })
     }
 }

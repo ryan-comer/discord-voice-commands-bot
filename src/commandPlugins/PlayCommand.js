@@ -1,12 +1,8 @@
 const path = require('path')
 const ICommand = require('./ICommand')
 
-const search = require('youtube-search')
 const stream = require('youtube-audio-stream')
-const {join} = require('path')
-
 const youtube = require('../youtube')
-
 const tts = require('../tts')
 
 class PlayCommand extends ICommand{
@@ -16,91 +12,13 @@ class PlayCommand extends ICommand{
     songStartTime
     isPlaying
 
-    constructor(){
-        super()
-    }
-
-    playSong(options){
-        // Find the youtube URL
-        const {videoUrl, videoName} = options
-        console.log(`Playing: ${videoUrl}\twith options: ${options.streamOptions}`)
-
-        let audioStream
-        try{
-            audioStream = stream(videoUrl, options.streamOptions)
-        }catch(error){
-            console.error(`Error getting YouTube stream: ${error}`)
-            return
-        }
-
-        audioStream.on('close', () => {
-            this.isPlaying = false
-            // Check if the song was manually stopped
-            if(this.stoppingSong){
-                // Ignore restart attempt
-                this.stoppingSong = false
-                return
-            }
-
-            if(this.errorOccured && videoUrl === this.currentUrl){
-                this.errorOccured = false
-
-                // Recover the stream
-                const songStopTime = new Date()
-                const timeInSongMilli = (songStopTime.getTime() - this.songStartTime.getTime())
-                console.log(`Recovering stream for: ${videoUrl} at time: ${timeInSongMilli / 1000} seconds`)
-                this.playSong({
-                    ...options,
-                    streamOptions: {
-                        beginning: timeInSongMilli
-                    },
-                    recovered: true
-                })
-            }
-        })
-        audioStream.on('error', () => {
-            this.errorOccured = true
-        })
-
-        this.currentUrl = videoUrl
-        this.songStartTime = new Date()
-
-        if(options.recovered){
-            options.player.playStream(audioStream)
-        }else{
-            options.musicChannel.send(`Playing: ${videoName}`)
-            tts.speak(`Playing ${videoName}`)
-            .then(ttsStream => {
-                options.player.playStream(ttsStream)
-                .then(() => {
-                    options.player.playStream(audioStream)
-                })
-            })
-        }
-        this.isPlaying = true
+    constructor(options){
+        super(options)
     }
 
     wakeWordDetected(options){
         if(this.isPlaying){
             this.stopPlaying(options)
-            return false
-        }
-
-        return true
-    }
-
-    stopPlaying(options){
-        if(this.isPlaying){
-            console.log('Stopping song')
-
-            this.stoppingSong = true
-            options.player.stopPlaying()
-
-            tts.speak('Stopping song')
-            .then(ttsStream => {
-                options.player.playStream(ttsStream)
-            })
-
             return false
         }
 
@@ -131,6 +49,9 @@ class PlayCommand extends ICommand{
                     .then(ttsStream => {
                         options.player.playStream(ttsStream)
                     })
+                    .catch(err => {
+                        console.error(err)
+                    })
                 }
                 if(options.musicChannel){
                     options.musicChannel.send(`No results found for ${options.commandText}`)
@@ -142,6 +63,97 @@ class PlayCommand extends ICommand{
     close(options){
         this.isStopping = this.isPlaying = this.errorOccured = false
     }
+
+    stopPlaying(options){
+        if(this.isPlaying){
+            console.log('Stopping song')
+
+            this.stoppingSong = true
+            options.player.stopPlaying()
+
+            tts.speak('Stopping song')
+            .then(ttsStream => {
+                options.player.playStream(ttsStream)
+            })
+            .catch(err => {
+                console.error(err)
+            })
+        }
+    }
+
+    playSong(options){
+        // Find the youtube URL
+        const {videoUrl, videoName} = options
+        console.log(`Playing: ${videoUrl}\twith options: ${options.streamOptions}`)
+
+        let audioStream
+        try{
+            audioStream = stream(videoUrl, options.streamOptions)
+        }catch(error){
+            console.error(`Error getting YouTube stream: ${error}`)
+            return
+        }
+
+        audioStream.on('close', () => {
+            this.isPlaying = false
+
+            /*
+            // Check if the song was manually stopped
+            if(this.stoppingSong){
+                // Ignore restart attempt
+                this.stoppingSong = false
+                return
+            }
+
+            if(this.errorOccured && videoUrl === this.currentUrl){
+                this.errorOccured = false
+
+                // Recover the stream
+                const songStopTime = new Date()
+                const timeInSongMilli = (songStopTime.getTime() - this.songStartTime.getTime())
+                console.log(`Recovering stream for: ${videoUrl} at time: ${timeInSongMilli / 1000} seconds`)
+                this.playSong({
+                    ...options,
+                    streamOptions: {
+                        beginning: timeInSongMilli
+                    },
+                    recovered: true
+                })
+            }
+            */
+        })
+        audioStream.on('error', () => {
+            this.errorOccured = true
+        })
+
+        this.currentUrl = videoUrl
+        this.songStartTime = new Date()
+
+        this.isPlaying = true
+
+        if(options.recovered){
+            options.player.playStream(audioStream)
+            .catch(err => {
+                console.error(err)
+            })
+        }else{
+            options.musicChannel.send(`Playing: ${videoName}`)
+            tts.speak(`Playing ${videoName}`)
+            .then(ttsStream => {
+                options.player.playStream(ttsStream)
+                .then(() => {
+                    options.player.playStream(audioStream)
+                    .catch(err => {
+                        console.error(err)
+                    })
+                })
+                .catch(err => {
+                    console.error(err)
+                })
+            })
+        }
+    }
+
 }
 
 module.exports = PlayCommand
