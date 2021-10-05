@@ -136,7 +136,10 @@ async function leaveChannel(){
     }
 
     if(commandManager != null){
-        commandManager.close()
+        commandManager.close({
+            musicChannel,
+            botChannel
+        })
     }
 }
 

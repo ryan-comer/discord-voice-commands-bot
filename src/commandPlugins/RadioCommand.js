@@ -115,7 +115,7 @@ class RadioCommand extends ICommand{
                 })
             }
             if(options.messageChannel){
-                messageChannel.send('Please say a song')
+                options.messageChannel.send('Please say a song')
             }
 
             this.currentState = 'IDLE'
@@ -207,8 +207,6 @@ class RadioCommand extends ICommand{
     }
 
     close(options){
-        this.stopPlaying()
-
         if(this.radioMessage){
             deleteMessage(this.radioMessage)
             this.radioMessage = null
