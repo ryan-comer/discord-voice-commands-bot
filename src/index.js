@@ -11,6 +11,7 @@ const PlayCommand = require('./commandPlugins/PlayCommand')
 const QuestionCommand = require('./commandPlugins/QuestionCommand')
 const RedbullCommand = require("./commandPlugins/RedbullCommand")
 const RadioCommand = require('./commandPlugins/RadioCommand')
+const FreeGamesCommand = require('./commandPlugins/FreeGamesCommand')
 
 const tts = require('./tts')
 
@@ -25,13 +26,14 @@ let musicChannel
 let botChannel
 
 // Add command handlers for command words
-function registerCommands(){
-    commandManager.addPluginHandle('play', new PlayCommand())
+function registerCommands(options){
+    commandManager.addPluginHandle('play', new PlayCommand(options))
     for(let word of ['who', 'what', 'when', 'where', 'why', 'how', 'do', 'is', 'was', 'will', 'would', 'can', 'could', 'did', 'should', 'whose', 'which', 'whom', 'are']){
-        commandManager.addPluginHandle(word, new QuestionCommand())
+        commandManager.addPluginHandle(word, new QuestionCommand(options))
     }
-    commandManager.addPluginHandle('redbull', new RedbullCommand())
-    commandManager.addPluginHandle('radio', new RadioCommand())
+    commandManager.addPluginHandle('redbull', new RedbullCommand(options))
+    commandManager.addPluginHandle('radio', new RadioCommand(options))
+    commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
 }
 
 
@@ -177,8 +179,9 @@ function processCommand(options){
     })
 }
 
-client.on('ready', () => {
+client.on('ready', readyClient => {
     console.log(`Logged in as ${client.user.tag}`);
+    registerCommands({client: readyClient})
 });
 
 // Interactions with chat messages
@@ -237,7 +240,5 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     }
 })
 
-registerCommands()
-
-client.login(process.env.BOT_TOKEN);
-//client.login(process.env.BOT_TOKEN_DEV);
+client.login(process.env.BOT_TOKEN)
+//client.login(process.env.BOT_TOKEN_DEV)

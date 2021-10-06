@@ -26,6 +26,7 @@ Rename the '.env.example' file to '.env' to get started.
 |IBM_WATSON_SERVICE_URL|Service URL for the IBM Speech to Text service. Get from https://cloud.ibm.com/apidocs/assistant/assistant-v2?code=node#endpoint-cloud depending on where you set up your service.|Required if SPEECH_TO_TEXT_METHOD is set to IBM_WATSON||
 |MUSIC_CHANNEL_NAME|Name of the music channel for the server. Used to post messages about playlists.|Optional|music|
 |BOT_CHANNEL_NAME|Name of the bot channel for the discord. Used to post generic bot messages (e.g. `Processing Command: ${command_text}`)|Optional|bot|
+|FREE_GAMES_CHANNEL_NAME|Name of the channel to post free games updates to (used with the free games command which will periodically scan for free games and post results to this channel)|Optional|free-games|
 |SPOTIFY_CLIENT_ID|Client ID for access to the Spotify API. This is used to find similar songs in the radio command|Required for the radio command||
 |SPOTIFY_CLIENT_SECRET|Client Secret for access to the Spotify API. This is used to find similar songs in the radio command|Required for the radio command||
 
@@ -76,3 +77,4 @@ Voice and text commands are handled through the same command handler. This means
 |play|Stream the audio for a YouTube video to the channel|;;play music best hits|
 |radio|Generate and play a radio station based on a song query. The bot will check Spotify for similar songs based on your query, and queue them up in the song queue. The music channel will show the current radio station and what the currently played song is|;;radio lincoln park in the end|
 |who, what, when, where, why, how, is, do, was, will, would, can, could, did, should, whose, which, whom, are|Ask a question to the bot. The bot will search Google and speak the snippet to the channel|;;what is the largest tech company in the world|
+|freegames|Search for free games by scanning rss feeds for popular game sites. A list of current articles on free games will be posted in the channel that the command was typed in. After 60 seconds, the post is deleted|;;freegames|
