@@ -118,8 +118,6 @@ class FreeGamesCommand extends ICommand{
             return
         }
 
-        console.log('Scanning for free games...')
-
         const newPosts = []
         const freeGameList = await this.getFreeGamesList()
         freeGameList.forEach(post => {
@@ -130,6 +128,8 @@ class FreeGamesCommand extends ICommand{
         })
 
         if(newPosts.length > 0){
+            console.log('Found new free games:')
+            console.dir(newPosts)
             const message = []
             for(const post of newPosts){
                 message.push(post.title)
