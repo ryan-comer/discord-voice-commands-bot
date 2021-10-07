@@ -39,6 +39,9 @@ Depending on the specs of your system where the bot is running, both of these ta
 
 Another consideration is image size. Using the LOCAL services will pull models that significantly increase the size of the image. If you don't set any service to LOCAL, those models will not be pulled.
 
+## Raspberry Pi
+I was unable to get the local services installed correctly on a Raspberry Pi. If you're using the cloud services instead, then you should have no issues.
+
 # Cloud Services
 
 ## Google
