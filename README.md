@@ -37,6 +37,8 @@ These options are completely free and do not require API keys.
 
 Depending on the specs of your system where the bot is running, both of these tasks could take a while to complete (on my system, using LOCAL speech-to-text and text-to-speech takes about 4 seconds for speech-to-text and 6 seconds for text-to-speech). Using cloud services is much quicker and more accurate than using the local services.
 
+Another consideration is image size. Using the LOCAL services will pull models that significantly increase the size of the image. If you don't set any service to LOCAL, those models will not be pulled.
+
 # Cloud Services
 
 ## Google

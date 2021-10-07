@@ -15,9 +15,7 @@ docker build -t $CONTAINER_NAME .
 # Check if the RECORDINGS_PATH variable is set
 if [ -z "$RECORDINGS_PATH" ]
 then
-    echo "\n\nTEST\n\n"
     docker run -d --name $CONTAINER_NAME $CONTAINER_NAME
 else
-    echo "\n\nTEST2\n\n"
     docker run -d --name $CONTAINER_NAME -v ${RECORDINGS_PATH}:/usr/src/voice-commands-bot/recordings:rw $CONTAINER_NAME
 fi

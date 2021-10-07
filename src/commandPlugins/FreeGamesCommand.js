@@ -108,7 +108,7 @@ class FreeGamesCommand extends ICommand{
     }
 
     close(options){
-        this.isRunning = false
+
     }
 
     // Start a thread to alert when games are free
