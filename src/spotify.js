@@ -167,6 +167,9 @@ class SpotifyClient{
                 resolve(response.data)
             })
             .catch(err => {
+                if(err.response.status === 404){
+                    reject(new NoSpotifySongsError(`No audio features found for song: ${songId}`))
+                }
                 reject(err)
             })
         })
@@ -199,6 +202,9 @@ class SpotifyClient{
                 resolve(response.data.tracks)
             })
             .catch(err => {
+                if(err.response.status === 404){
+                    reject(new NoSpotifySongsError(`No recommended songs found for: ${spotifySong}`))
+                }
                 reject(err)
             })
         })

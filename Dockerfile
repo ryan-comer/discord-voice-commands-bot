@@ -3,11 +3,8 @@ FROM node
 # Create app directory
 WORKDIR /usr/src/voice-commands-bot
 
+# Update package repo
 RUN apt-get update -y
-
-# Bundle app source
-COPY . .
-RUN ["chmod", "+x", "local_check.sh"]
 
 # Git LFS
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
@@ -24,11 +21,17 @@ RUN apt-get -y install lame
 RUN apt-get -y install ffmpeg
 
 # Check for LOCAL text-to-speech or speech-to-text dependencies
+COPY .env ./
+COPY local_check.sh ./
+RUN ["chmod", "+x", "local_check.sh"]
 RUN ./local_check.sh
 
 # Environment variables
 ENV GOOGLE_APPLICATION_CREDENTIALS="/usr/src/voice-commands-bot/keys/google_key.json"
 ENV IBM_CREDENTIALS_FILE="/usr/src/voice-commands-bot/keys/ibm-credentials.env"
+
+# Bundle app source
+COPY . .
 
 # Execute app
 CMD [ "node", "./src/index.js" ]

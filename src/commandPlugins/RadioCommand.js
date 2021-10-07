@@ -150,6 +150,8 @@ class RadioCommand extends ICommand{
             this.startPlaylist(options)
         })
         .catch(err => {
+            console.error(err)
+
             // Check for errors generating the radio station
             if(err.name === 'NoSpotifySongsError'){
                 if(options.commandType == 'voice'){
