@@ -12,8 +12,8 @@ docker build -t $CONTAINER_NAME .
 # Run the container
 # Check if the RECORDINGS_PATH variable is set
 if(($null -ne $RECORDINGS_PATH) -and ($RECORDINGS_PATH -ne "")){
-    docker run -d --name $CONTAINER_NAME -v ${RECORDINGS_PATH}:/usr/src/voice-commands-bot/recordings:rw $CONTAINER_NAME
+    docker run -d --name $CONTAINER_NAME -v ${RECORDINGS_PATH}:/usr/src/voice-commands-bot/recordings:rw --restart unless-stopped $CONTAINER_NAME
 }
 else{
-    docker run -d --name $CONTAINER_NAME $CONTAINER_NAME
+    docker run -d --name $CONTAINER_NAME --restart unless-stopped $CONTAINER_NAME
 }

@@ -7,6 +7,7 @@ RUN apt-get update -y
 
 # Bundle app source
 COPY . .
+RUN ["chmod", "+x", "local_check.sh"]
 
 # Git LFS
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
