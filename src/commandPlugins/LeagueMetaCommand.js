@@ -39,7 +39,7 @@ class LeagueMetaCommand extends ICommand{
 
         let desiredRank = this.getRankFromCommand(options)
         if(!desiredRank){
-            desiredRank = 'platinum'
+            desiredRank = 'master_plus'
         }
 
         let desiredSort = this.getSortFromCommand(options)
