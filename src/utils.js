@@ -14,7 +14,7 @@ function deleteMessage(message){
 // Helper function to send a channel message
 // Return a list of message objects (in case of splitting on 2000 character limit)
 function sendMessage(options){
-    options.channel.send(options.message.slice(0, 2000))
+    return options.channel.send(options.message.slice(0, 2000))
 }
 
 // Helper function to get a channel by name from a client

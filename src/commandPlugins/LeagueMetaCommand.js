@@ -2,7 +2,7 @@ const ICommand = require('./ICommand')
 const Ugg = require('../ugg')
 
 const { MessageEmbed } = require('discord.js')
-const {sendMessage, getChannelFromClient} = require('../utils')
+const {sendMessage, getChannelFromClient, deleteMessage} = require('../utils')
 const table = require('text-table')
 const cron = require('node-cron')
 
@@ -78,6 +78,14 @@ class LeagueMetaCommand extends ICommand{
                 sendMessage({
                     channel: options.messageChannel,
                     message
+                })
+                .then(message => {
+                    setTimeout(() => {
+                        deleteMessage(message)
+                        if(options.message){
+                            deleteMessage(options.message)
+                        }
+                    }, 60 * 1000)
                 })
             }
         })
@@ -235,9 +243,7 @@ class LeagueMetaCommand extends ICommand{
 
     // Get the count from the command
     getCountFromCommand(options){
-        console.log(options.commandText)
         for(let word of options.commandText.split(' ')){
-            console.log(word)
             if(!isNaN(parseInt(word))){
                 return parseInt(word)
             }

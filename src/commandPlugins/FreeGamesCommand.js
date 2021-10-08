@@ -39,7 +39,7 @@ class FreeGamesCommand extends ICommand{
             this.getFreeGamesList()
             .then(posts => {
                 this.lastScanResult = posts
-                this.scanForFreeGames()
+                this.scanForFreeGames(channel)
             })
         })
     }
@@ -95,7 +95,7 @@ class FreeGamesCommand extends ICommand{
     }
 
     // Start a thread to alert when games are free
-    async scanForFreeGames(){
+    async scanForFreeGames(channel){
         if(!this.isRunning){
             // Stop scanning
             return
@@ -121,14 +121,17 @@ class FreeGamesCommand extends ICommand{
                 message.push('\n')
             }
 
-            this.freeGamesChannel.send(message.join(' ').substr(0, 2000))
+            utils.sendMessage({
+                channel,
+                message: message.join(' ')
+            })
         }
         
         this.lastScanResult = freeGameList
 
         // Scan again after a time
         setTimeout(() => {
-            this.scanForFreeGames()
+            this.scanForFreeGames(channel)
         }, 5 * 60 * 1000)
     }
 
