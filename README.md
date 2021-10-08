@@ -27,6 +27,7 @@ Rename the '.env.example' file to '.env' to get started.
 |MUSIC_CHANNEL_NAME|Name of the music channel for the server. Used to post messages about playlists.|Optional|music|
 |BOT_CHANNEL_NAME|Name of the bot channel for the discord. Used to post generic bot messages (e.g. `Processing Command: ${command_text}`)|Optional|bot|
 |FREE_GAMES_CHANNEL_NAME|Name of the channel to post free games updates to (used with the free games command which will periodically scan for free games and post results to this channel)|Optional|free-games|
+|LEAGUE_META_CHANNEL_NAME|Name of the channel to post daily updates for the current League of Legends meta. Used by the LeagueMetaCommand.|Optional|league-meta|
 |SPOTIFY_CLIENT_ID|Client ID for access to the Spotify API. This is used to find similar songs in the radio command|Required for the radio command||
 |SPOTIFY_CLIENT_SECRET|Client Secret for access to the Spotify API. This is used to find similar songs in the radio command|Required for the radio command||
 

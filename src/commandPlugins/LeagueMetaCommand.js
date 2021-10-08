@@ -16,11 +16,11 @@ class LeagueMetaCommand extends ICommand{
 
         getChannelFromClient({
             client: options.client,
-            channelName: process.env.LEAGUE_META_CHANNEL
+            channelName: process.env.LEAGUE_META_CHANNEL_NAME
         })
         .then(channel => {
             if(!channel){
-                console.log(`No ${process.env.LEAGUE_META_CHANNEL} found, not posting meta updates`)
+                console.log(`No ${process.env.LEAGUE_META_CHANNEL_NAME} found, not posting meta updates`)
                 return
             }
 

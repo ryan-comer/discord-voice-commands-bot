@@ -27,11 +27,11 @@ class FreeGamesCommand extends ICommand{
         // Get the channels
         utils.getChannelFromClient({
             client: options.client,
-            channelName: process.env.FREE_GAMES_CHANNEL
+            channelName: process.env.FREE_GAMES_CHANNEL_NAME
         })
         .then(channel => {
             if(!channel){
-                console.log(`No ${process.env.FREE_GAMES_CHANNEL} found. Not scanning for free games`)
+                console.log(`No ${process.env.FREE_GAMES_CHANNEL_NAME} found. Not scanning for free games`)
                 return
             }
 
