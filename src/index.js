@@ -12,6 +12,7 @@ const QuestionCommand = require('./commandPlugins/QuestionCommand')
 const RedbullCommand = require("./commandPlugins/RedbullCommand")
 const RadioCommand = require('./commandPlugins/RadioCommand')
 const FreeGamesCommand = require('./commandPlugins/FreeGamesCommand')
+const LeagueMetaCommand = require('./commandPlugins/LeagueMetaCommand')
 
 const tts = require('./tts')
 
@@ -34,6 +35,7 @@ function registerCommands(options){
     commandManager.addPluginHandle('redbull', new RedbullCommand(options))
     commandManager.addPluginHandle('radio', new RadioCommand(options))
     commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
+    commandManager.addPluginHandle('leaguemeta', new LeagueMetaCommand(options))
 }
 
 

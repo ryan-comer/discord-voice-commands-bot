@@ -25,40 +25,23 @@ class FreeGamesCommand extends ICommand{
         this.lastScanResult = []
 
         // Get the channels
-        options.client.guilds.fetch()
-        .then(guilds => {
-            if(guilds.length == 0){
-                console.error('Client not in a guild')
+        utils.getChannelFromClient({
+            client: options.client,
+            channelName: process.env.FREE_GAMES_CHANNEL
+        })
+        .then(channel => {
+            if(!channel){
+                console.log(`No ${process.env.FREE_GAMES_CHANNEL} found. Not scanning for free games`)
                 return
             }
 
-            const guild = guilds.entries().next().value[1]
-
-            // Fetch again to get channels
-            options.client.guilds.fetch(guild.id)
-            .then(guild2 => {
-                guild2.channels.fetch()
-                .then(channels => {
-                    for(let [key, value] of channels){
-                        if(value.name == process.env.FREE_GAMES_CHANNEL){
-                            this.freeGamesChannel = value
-                        }
-                    }
-                    if(!this.freeGamesChannel){
-                        console.log('No FREE_GAMES_CHANNEL found. Not scanning for free games')
-                        return
-                    }
-
-                    // Scan once to start
-                    this.getFreeGamesList()
-                    .then(posts => {
-                        this.lastScanResult = posts
-                        this.scanForFreeGames()
-                    })
-                })
+            // Scan once to start
+            this.getFreeGamesList()
+            .then(posts => {
+                this.lastScanResult = posts
+                this.scanForFreeGames()
             })
         })
-
     }
 
     wakeWordDetected(options){
