@@ -27,7 +27,7 @@ class LeagueMetaCommand extends ICommand{
             }
 
             // Start the cron job
-            this.cronJob = new CronJob('27 8 * * *', () => {
+            this.cronJob = new CronJob('0 9 * * *', () => {
                 this.postMetaChampions(channel)
             }, null, true, 'America/Chicago')
         })
