@@ -99,7 +99,7 @@ class LeagueMetaCommand extends ICommand{
     }
 
     wakeWordDetected(options){
-
+        return true
     }
 
     close(options){
