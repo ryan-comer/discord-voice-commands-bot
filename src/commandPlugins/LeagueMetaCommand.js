@@ -4,13 +4,15 @@ const Ugg = require('../ugg')
 const { MessageEmbed } = require('discord.js')
 const {sendMessage, getChannelFromClient, deleteMessage} = require('../utils')
 const table = require('text-table')
-const cron = require('node-cron')
+const CronJob = require('cron').CronJob
 
 const roles = ['adc', 'jungle', 'mid', 'top', 'supp']
 const ranks = ['iron', 'bronze', 'silver', 'gold', 'platinum', 'diamond', 'master', 'grandmaster', 'challenger', 'platinum_plus', 'diamond_plus', 'master_plus']
 const sorts = ['win rate', 'pick rate', 'ban rate']
 
 class LeagueMetaCommand extends ICommand{
+    cronJob
+
     constructor(options){
         super(options)
 
@@ -25,7 +27,9 @@ class LeagueMetaCommand extends ICommand{
             }
 
             // Start the cron job
-            cron.schedule('* 9 * * *', () => this.cronJob(channel))
+            this.cronJob = new CronJob('27 8 * * *', () => {
+                this.postMetaChampions(channel)
+            }, null, true, 'America/Chicago')
         })
     }
 
@@ -103,7 +107,7 @@ class LeagueMetaCommand extends ICommand{
     }
 
     // Send message for the best champions once a day
-    cronJob(channel){
+    postMetaChampions(channel){
         const rank = 'master_plus'
 
         const ugg = new Ugg()
