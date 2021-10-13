@@ -24,7 +24,7 @@ async function getRedbullScores(options){
             // Get the time remaining
             const startDate = new Date()
             const endDate = new Date(endDateString)
-            endDate.setFullYear(2021)
+            endDate.setFullYear(startDate.getFullYear())
             const diffMilliseconds = endDate - startDate
 
             const millisecondsPerDay = 1000 * 60 * 60 * 24
@@ -42,7 +42,7 @@ async function getRedbullScores(options){
             resolve({
                 players: returnPlayers, 
                 topThree,
-                timeRemaining: `${days} Days\t${hours}Hours\t${minutes}Minutes`
+                timeRemaining: `${days} Days\t${hours} Hours\t${minutes} Minutes`
             })
         })
     })
