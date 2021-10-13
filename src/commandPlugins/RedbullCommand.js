@@ -11,6 +11,8 @@ async function getRedbullScores(options){
         axios.get(url)
         .then(response => {
             const players = response.data.campaign.Leaderboards.Rounds[options.leaderboardIndex].Players
+            const startDateString = response.data.campaign.Leaderboards.Rounds[options.leaderboardIndex].Start_Date
+            const endDateString = response.data.campaign.Leaderboards.Rounds[options.leaderboardIndex].End_Date
             const topThree = players.slice(0, 3)
             for(let player of players){
                 if(options.playerNames.includes(player.username)){
@@ -19,7 +21,29 @@ async function getRedbullScores(options){
                 }
             }
 
-            resolve({players: returnPlayers, topThree})
+            // Get the time remaining
+            const startDate = new Date()
+            const endDate = new Date(endDateString)
+            endDate.setFullYear(2021)
+            const diffMilliseconds = endDate - startDate
+
+            const millisecondsPerDay = 1000 * 60 * 60 * 24
+            const millisecondsPerHour = 1000 * 60 * 60
+            const millisecondsPerMinute = 1000 * 60
+
+            const days =  parseInt((diffMilliseconds / millisecondsPerDay))
+            const daysRemainderMilliseconds = diffMilliseconds % millisecondsPerDay
+
+            const hours = parseInt((daysRemainderMilliseconds / millisecondsPerHour))
+            const hoursRemainderMilliseconds = daysRemainderMilliseconds % millisecondsPerHour
+
+            const minutes = parseInt((hoursRemainderMilliseconds / millisecondsPerMinute))
+
+            resolve({
+                players: returnPlayers, 
+                topThree,
+                timeRemaining: `${days} Days\t${hours}Hours\t${minutes}Minutes`
+            })
         })
     })
 }
@@ -46,6 +70,7 @@ class RedBullCommand extends ICommand{
         })
         .then(results => {
             const message = []
+            message.push(`**Time Remaining: **${results.timeRemaining}\n`)
             message.push(`**Top 3 Players:**\n`)
             for(const player of results.topThree){
                 message.push(`${player.username}: ${player.score}\n`)
