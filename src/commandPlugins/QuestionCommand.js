@@ -15,6 +15,16 @@ class QuestionCommand extends ICommand{
         this.speakingStream = null
     }
 
+    name(){
+        return 'question'
+    }
+
+    description(){
+        return 'Searches Google for the answer to a question and responds with a summary. Start the command with a \'question\' word.\n' +
+        'Possible question words are (who, what, when, where, why, how, do, is, was, will, would, can, could, did, should, whose, which, whom, are)\n' +
+        'Example: \';;who is the richest person in the world\''
+    }
+
     extractHostname(url) {
         var hostname;
         //find & remove protocol (http, ftp, etc.) and get hostname

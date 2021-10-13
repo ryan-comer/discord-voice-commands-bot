@@ -9,6 +9,12 @@ class ICommand {
         if(!this.close){
             throw new Error('Command must implement close(options)')
         }
+        if(!this.name){
+            throw new Error('Command must implement name()')
+        }
+        if(!this.description){
+            throw new Error('Command must implement description()')
+        }
     }
 }
 

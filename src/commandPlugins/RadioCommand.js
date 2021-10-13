@@ -81,6 +81,15 @@ class RadioCommand extends ICommand{
         this.currentState = 'IDLE'
     }
 
+    name(){
+        return 'radio'
+    }
+
+    description(){
+        return 'Generate and play a radio station based on similar songs from the requested song.\n' +
+        'Example: \';;radio you say run\''
+    }
+
     command(options){
         console.log(`Current state: ${this.currentState}`)
         if(this.currentState === 'STARTING'){

@@ -33,6 +33,19 @@ class LeagueMetaCommand extends ICommand{
         })
     }
 
+    name(){
+        return 'leaguemeta'
+    }
+
+    description(){
+        return 'List the top champions for a particular role and rank. You can type a rank, role(s), or number of champions to return. Anything not typed will get a default value\n' +
+        'Default values are (rank = master_plus), (count = 5), (roles = adc, mid, top, supp, jungle)\n' +
+        'Possible ranks are (iron, bronze, silver, gold, platinum, diamond, master, grandmaster, challenger, platinum_plus, diamond_plus, master_plus)\n' +
+        'Possible roles are (top, mid, jungle, adc, supp)\n' +
+        'Possible count is any number\n' +
+        'Example: ;;leaguemeta 3 top adc supp platinum_plus'
+    }
+
     command(options){
         // Get query parameters
         let desiredRoles = this.getRolesFromCommand(options)

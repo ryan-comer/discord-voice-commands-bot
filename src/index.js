@@ -29,9 +29,8 @@ let botChannel
 // Add command handlers for command words
 function registerCommands(options){
     commandManager.addPluginHandle('play', new PlayCommand(options))
-    for(let word of ['who', 'what', 'when', 'where', 'why', 'how', 'do', 'is', 'was', 'will', 'would', 'can', 'could', 'did', 'should', 'whose', 'which', 'whom', 'are']){
-        commandManager.addPluginHandle(word, new QuestionCommand(options))
-    }
+    commandManager.addPluginHandle(['who', 'what', 'when', 'where', 'why', 'how', 'do', 'is', 'was', 'will', 'would', 
+    'can', 'could', 'did', 'should', 'whose', 'which', 'whom', 'are'], new QuestionCommand(options))
     commandManager.addPluginHandle('redbull', new RedbullCommand(options))
     commandManager.addPluginHandle('radio', new RadioCommand(options))
     commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
@@ -219,7 +218,8 @@ client.on('messageCreate', async (message) => {
                         command: message.content.substr(2),
                         userId: message.member.id,
                         messageChannel: channel,
-                        commandType: 'text'
+                        commandType: 'text',
+                        author: message.author
                     })
                 })
             }

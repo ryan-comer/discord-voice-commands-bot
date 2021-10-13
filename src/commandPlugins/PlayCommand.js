@@ -16,6 +16,15 @@ class PlayCommand extends ICommand{
         super(options)
     }
 
+    name(){
+        return 'play'
+    }
+
+    description(){
+        return 'Play a song from YouTube. Select the first video based on a search.\n' +
+        'Example: \';;play you say run\''
+    }
+
     wakeWordDetected(options){
         if(this.isPlaying){
             this.stopPlaying(options)

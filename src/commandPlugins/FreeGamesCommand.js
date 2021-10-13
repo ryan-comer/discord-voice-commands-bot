@@ -44,6 +44,15 @@ class FreeGamesCommand extends ICommand{
         })
     }
 
+    name(){
+        return 'freegames'
+    }
+
+    description(){
+        return 'List current articles about free games.\n' +
+        'Example: \';;freegames\''
+    }
+
     wakeWordDetected(options){
         return true
     }

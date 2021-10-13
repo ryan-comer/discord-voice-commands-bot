@@ -29,6 +29,15 @@ class RedBullCommand extends ICommand{
         super(options)
     }
 
+    name(){
+        return 'redbull'
+    }
+
+    description(){
+        return 'Get a summary of the redbull League of Legends competition.\n' +
+        'Example: \';;redbull\''
+    }
+
     command(options){
         const playerNames = ['The Jax', 'Jamie Butler', 'Onyankopon']
         getRedbullScores({
