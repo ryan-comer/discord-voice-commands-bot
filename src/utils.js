@@ -1,9 +1,23 @@
 // Helper function to check for messages before deleting
 function deleteMessage(message){
+    if(message == null){
+        return
+    }
+
+    // Don't delete DM messages from the user
+    if(!message.author.bot && message.channel.type === 'DM'){
+        return
+    }
+
     message.channel.messages.fetch(message.id)
     .then(messageCheck => {
         if(!(messageCheck?.deleted)){
-            messageCheck.delete()
+            try{
+                messageCheck.delete()
+            }
+            catch(err){
+                console.error(err)
+            }
         }
     })
     .catch(err => {

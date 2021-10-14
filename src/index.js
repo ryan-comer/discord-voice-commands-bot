@@ -2,7 +2,7 @@ require('dotenv-defaults').config()
 
 const { Client, Intents, VoiceChannel } = require("discord.js")
 const { joinVoiceChannel} = require('@discordjs/voice')
-const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]})
+const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.DIRECT_MESSAGES], partials: ['MESSAGE', 'CHANNEL']})
 const Player = require('./player.js')
 const Listener = require('./listener.js')
 const TextToSpeech = require("./tts.js")
@@ -13,6 +13,7 @@ const RedbullCommand = require("./commandPlugins/RedbullCommand")
 const RadioCommand = require('./commandPlugins/RadioCommand')
 const FreeGamesCommand = require('./commandPlugins/FreeGamesCommand')
 const LeagueMetaCommand = require('./commandPlugins/LeagueMetaCommand')
+const ChessCommand = require('./commandPlugins/ChessCommand')
 
 const tts = require('./tts')
 
@@ -35,6 +36,7 @@ function registerCommands(options){
     commandManager.addPluginHandle('radio', new RadioCommand(options))
     commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
     commandManager.addPluginHandle('leaguemeta', new LeagueMetaCommand(options))
+    commandManager.addPluginHandle('chess', new ChessCommand(options))
 }
 
 
@@ -187,16 +189,23 @@ client.on('ready', readyClient => {
 
 // Interactions with chat messages
 client.on('messageCreate', async (message) => {
-    if(message.member.user.bot){
+    if(message.author.id === client.user.id){
+        // Ignore self
+        return
+    }
+
+    if(message.author.bot){
         // Igore bots
         return
     }
 
+    if(message.guild){
     await findTextChannels(message.guild)   // Get the text channels the bot interacts with
+    }
 
     switch(message.content.toLowerCase()){
         case ';;join':
-            if(message.member.voice.channel != null){
+            if(message.member?.voice.channel != null){
                 if(this.voiceConnection == null){
                     connectToChannel(message.member.voice.channel, message.author.id)
                 }
@@ -211,12 +220,12 @@ client.on('messageCreate', async (message) => {
             }
         default:
             if(message.content.startsWith(';;')){
-                message.channel.fetch(message.channelId)
+                client.channels.fetch(message.channelId)
                 .then(channel => {
                     processCommand({
                         message: message,
                         command: message.content.substr(2),
-                        userId: message.member.id,
+                        userId: message.author.id,
                         messageChannel: channel,
                         commandType: 'text',
                         author: message.author

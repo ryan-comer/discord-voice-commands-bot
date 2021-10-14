@@ -26,6 +26,9 @@ COPY local_check.sh ./
 RUN ["chmod", "+x", "local_check.sh"]
 RUN ./local_check.sh
 
+# Stockfish for chess command
+RUN apt-get install -y stockfish
+
 # Environment variables
 ENV GOOGLE_APPLICATION_CREDENTIALS="/usr/src/voice-commands-bot/keys/google_key.json"
 ENV IBM_CREDENTIALS_FILE="/usr/src/voice-commands-bot/keys/ibm-credentials.env"
