@@ -96,11 +96,13 @@ class LeagueMetaCommand extends ICommand{
                     channel: options.messageChannel,
                     message
                 })
-                .then(message => {
+                .then(messages => {
                     setTimeout(() => {
-                        deleteMessage(message)
-                        if(options.message){
-                            deleteMessage(options.message)
+                        for(let message of messages){
+                            deleteMessage(message)
+                            if(options.message){
+                                deleteMessage(options.message)
+                            }
                         }
                     }, 60 * 1000)
                 })

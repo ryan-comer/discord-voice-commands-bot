@@ -74,7 +74,10 @@ class CommandManager{
         }
 
         if(options.author){
-            options.author.send(helpMessageArray.join(''))
+            sendMessage({
+                channel: options.author.dmChannel,
+                message: helpMessageArray.join('')
+            })
         }
     }
 
