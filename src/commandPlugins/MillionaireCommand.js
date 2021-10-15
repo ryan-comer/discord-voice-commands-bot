@@ -345,7 +345,6 @@ class MillionaireCommand extends ICommand{
         this.checkLoadGame(options)
 
         if(!(options.userId in this.games)){
-            options.author.send('No Millionaire game started, please type ;;millionaire start')
             return
         }
 
