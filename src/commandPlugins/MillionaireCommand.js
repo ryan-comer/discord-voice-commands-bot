@@ -279,7 +279,13 @@ class MillionaireCommand extends ICommand{
     }
 
     description(){
-        return 'Play a game of who wants to be a millionaire'
+        return 'Play a game of who wants to be a millionaire\n' +
+        'Type \';;millionaire start\' to start a new game\n' +
+        'The game is played in your direct message to Jarvis\n' +
+        'To answer a question with c, type \';;millionaire c\'\n' +
+        'To stop a game, type \';;millionaire stop\'\n' +
+        'The normal rules apply. You can stop at any time and take you\'re winning\n.' +
+        'If you pass a checkpoint (bolded), then get a question wrong will get you that amount of money'
     }
 
     command(options){
