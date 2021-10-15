@@ -6,6 +6,8 @@ const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_M
 const Player = require('./player.js')
 const Listener = require('./listener.js')
 const TextToSpeech = require("./tts.js")
+
+// Commands
 const CommandManager = require('./CommandManager.js')
 const PlayCommand = require('./commandPlugins/PlayCommand')
 const QuestionCommand = require('./commandPlugins/QuestionCommand')
@@ -14,6 +16,7 @@ const RadioCommand = require('./commandPlugins/RadioCommand')
 const FreeGamesCommand = require('./commandPlugins/FreeGamesCommand')
 const LeagueMetaCommand = require('./commandPlugins/LeagueMetaCommand')
 const ChessCommand = require('./commandPlugins/ChessCommand')
+const MillionaireCommand = require('./commandPlugins/MillionaireCommand')
 
 const tts = require('./tts')
 
@@ -37,6 +40,7 @@ function registerCommands(options){
     commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
     commandManager.addPluginHandle('leaguemeta', new LeagueMetaCommand(options))
     commandManager.addPluginHandle('chess', new ChessCommand(options))
+    commandManager.addPluginHandle('millionaire', new MillionaireCommand(options))
 }
 
 

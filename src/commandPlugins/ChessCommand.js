@@ -34,8 +34,10 @@ class ChessGame{
         if(!fs.existsSync(SAVE_GAMES_DIR)){
             fs.mkdirSync(SAVE_GAMES_DIR)
         }
+    }
 
-        this.spawnStockfish(options)
+    async init(options){
+        await this.spawnStockfish(options)
     }
 
     // Save the game to a file
@@ -50,14 +52,15 @@ class ChessGame{
     }
     
     // Load a game from a file
-    loadGame(userId){
+    loadGame(player){
         // Check for the save file
-        if(fs.existsSync(SAVE_GAMES_DIR + userId)){
+        if(fs.existsSync(SAVE_GAMES_DIR + player.id)){
             // Found save file to load - load the game
-            const pgn = fs.readFileSync(SAVE_GAMES_DIR + userId,
+            const pgn = fs.readFileSync(SAVE_GAMES_DIR + player.id,
             {encoding:'utf8', flag:'r'});
             this.chess.load_pgn(pgn)
 
+            this.player = player
             return true
         }
 
@@ -145,11 +148,17 @@ class ChessGame{
     }
 
     // Close the game
-    close(options){
+    async close(options){
         deleteMessage(this.previousBoardMessage)
         deleteMessage(this.currentBoardMessage)
         deleteMessage(this.currentMoveMessage)
+
         this.stockfishEngine?.quit()
+
+        // Delete the save file
+        if(fs.existsSync(SAVE_GAMES_DIR + this.player.id)){
+            fs.unlinkSync(SAVE_GAMES_DIR + this.player.id)
+        }
     }
 
     // Create the process for stockfish for this game
@@ -248,7 +257,7 @@ class ChessCommand extends ICommand{
     }
 
     // Start a new game for the player
-    startGame(options){
+    async startGame(options){
         // Get the elo
         const commandTextArray = options.commandText.split(' ')
         let difficulty = 3  // Default value
@@ -266,12 +275,13 @@ class ChessCommand extends ICommand{
         // Create a new chess game
         if(options.userId in this.chessGames){
             // game already exists
-            this.chessGames[options.userId].close()
+            this.chessGames[options.userId].close(options)
         }
         this.chessGames[options.userId] = new ChessGame({
             ...options,
             difficulty
         })
+        await this.chessGames[options.userId].init(options)
 
         options.author.send(`Starting game at ${difficulty} difficulty`)
 
@@ -280,30 +290,41 @@ class ChessCommand extends ICommand{
     }
 
     // Stop the game for the user
-    stopGame(options){
+    async stopGame(options){
+        await this.checkLoadGame(options)
+
         if(!(options.userId in this.chessGames)){
             options.author.send("No game running to stop")
             return
         }
 
-        this.chessGames[options.userId].close()
+        await this.chessGames[options.userId].close(options)
         delete this.chessGames[options.userId]
     }
 
-    // Process a move that a player made
-    processMove(options){
+    // See if you have to load a game
+    // If so, load the game
+    async checkLoadGame(options){
         if(!(options.userId in this.chessGames)){
             // Game not present - check for game load
             const chessGame = new ChessGame(options)
-            if(chessGame.loadGame()){
+            if(chessGame.loadGame(options.author)){
+                // Load the stockfish engine
+                await chessGame.init(options)
+
                 // Game loaded
                 this.chessGames[options.userId] = chessGame
             }
-            else{
-                // No game found
-                options.author.send('No game running - please start a game first')
-                return
-            }
+        }
+    }
+
+    // Process a move that a player made
+    async processMove(options){
+        await this.checkLoadGame(options)
+
+        if(!(options.userId in this.chessGames)){
+            options.author.send('No game running - please start a game first')
+            return
         }
 
         const chessGame = this.chessGames[options.userId]
