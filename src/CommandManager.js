@@ -99,8 +99,10 @@ class CommandManager{
                 .then(audioStream => {
                     options.player.playStream(audioStream)
                 })
-            }else{
+            }else if(options.messageChannel){
                 options.messageChannel.send('Command not recognized')
+            }else if(options.botChannel){
+                options.botChannel.send('Command not recognized')
             }
 
             return false

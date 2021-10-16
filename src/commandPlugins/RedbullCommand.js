@@ -42,7 +42,8 @@ async function getRedbullScores(options){
             resolve({
                 players: returnPlayers, 
                 topThree,
-                timeRemaining: `${days} Days\t${hours} Hours\t${minutes} Minutes`
+                timeRemaining: `${days} Days\t${hours} Hours\t${minutes} Minutes`,
+                lastUpdated: response.data.campaign.Leaderboards.Rounds[options.leaderboardIndex].Last_Updated
             })
         })
     })
@@ -70,6 +71,7 @@ class RedBullCommand extends ICommand{
         })
         .then(results => {
             const message = []
+            message.push(`**Last Updated**: ${results.lastUpdated}\n`)
             message.push(`**Time Remaining: **${results.timeRemaining}\n`)
             message.push(`**Top 3 Players:**\n`)
             for(const player of results.topThree){
