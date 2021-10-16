@@ -12,7 +12,11 @@ class Player {
 
     constructor(options){
         this.voiceConnection = options.voiceConnection;
-        this.audioPlayer = createAudioPlayer();
+        this.audioPlayer = createAudioPlayer({
+            behaviors: {
+                maxMissedFrames: process.env.PLAYER_MAX_MISSED_FRAMES
+            }
+        });
         this.playerSubscription = this.voiceConnection.subscribe(this.audioPlayer)
         
         this.audioPlayer.on('debug', (message) => {

@@ -94,7 +94,7 @@ class CommandManager{
         }
 
         if(!this.pluginMap.has(commandWord)){
-            if(options.player){
+            if(options.player && options.commandType === 'voice'){
                 tts.speak('Command not recognized')
                 .then(audioStream => {
                     options.player.playStream(audioStream)
