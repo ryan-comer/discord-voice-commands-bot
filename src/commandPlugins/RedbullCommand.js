@@ -71,7 +71,7 @@ class RedBullCommand extends ICommand{
         })
         .then(results => {
             const message = []
-            message.push(`**Last Updated**: ${results.lastUpdated} PT\n`)
+            message.push(`**Last Updated**: ${results.lastUpdated} ET\n`)
             message.push(`**Time Remaining: **${results.timeRemaining}\n`)
             message.push(`**Top 3 Players:**\n`)
             for(const player of results.topThree){
