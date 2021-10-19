@@ -198,12 +198,7 @@ class RadioCommand extends ICommand{
             console.log('Stopping radio')
 
             this.currentState = 'STOPPING'
-            options.player.stopPlaying()
-
-            tts.speak('Stopping radio')
-            .then(ttsStream => {
-                options.player.playStream(ttsStream)
-            })
+            options.player.stop()
 
             if(this.radioMessage){
                 deleteMessage(this.radioMessage)
@@ -369,7 +364,25 @@ class RadioCommand extends ICommand{
 
     // Start playing a youtube video
     async playSong(options){
-        const {videoUrl, videoName} = options
+        return new Promise((resolve, reject) => {
+            const {videoUrl, videoName} = options
+            this.currentState = 'PLAYING'
+            options.player.playYoutube(videoUrl)
+            .then(() => {
+                if(this.currentState === 'STOPPING' || this.currentState === 'IDLE'){
+                    // Ignore restart attempt
+                    return resolve()
+                }
+
+                return resolve({nextSong: true})
+            })
+            .catch(err => {
+                console.error(err)
+                reject(err)
+            })
+        })
+
+        /*
         let audioStream = null
         try{
             console.log(`Playing: ${videoUrl}`)
@@ -405,6 +418,7 @@ class RadioCommand extends ICommand{
                 return
             }
         })
+        */
     }
 }
 

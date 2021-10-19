@@ -78,7 +78,7 @@ class PlayCommand extends ICommand{
             console.log('Stopping song')
 
             this.stoppingSong = true
-            options.player.stopPlaying()
+            options.player.stop()
 
             tts.speak('Stopping song')
             .then(ttsStream => {
@@ -93,20 +93,42 @@ class PlayCommand extends ICommand{
     playSong(options){
         // Find the youtube URL
         const {videoUrl, videoName} = options
-        console.log(`Playing: ${videoUrl}\twith options: ${options.streamOptions}`)
 
-        let audioStream
-        try{
-            audioStream = stream(videoUrl, options.streamOptions)
-        }catch(error){
-            console.error(`Error getting YouTube stream: ${error}`)
-            return
+        if(options.commandType === 'voice'){
+            tts.speak(`Playing ${videoName}`)
+            .then(audioStream => {
+                options.player.playStream(audioStream)
+                .then(() => {
+                    this.isPlaying = true
+                    options.player.playYoutube(videoUrl)
+                    .then(() => {
+                        this.isPlaying = false
+                    })
+                    .catch(err => {
+                        console.error('Error playing song')
+                        console.error(err)
+                        this.isPlaying = false
+                    })
+                })
+            })
+        }else{
+            this.isPlaying = true
+            options.player.playYoutube(videoUrl)
+            .then(() => {
+                this.isPlaying = false
+            })
+            .catch(err => {
+                console.error('Error playing song')
+                console.error(err)
+                this.isPlaying = false
+            })
         }
 
+
+        /*
         audioStream.on('close', () => {
             this.isPlaying = false
 
-            /*
             // Check if the song was manually stopped
             if(this.stoppingSong){
                 // Ignore restart attempt
@@ -129,7 +151,6 @@ class PlayCommand extends ICommand{
                     recovered: true
                 })
             }
-            */
         })
         audioStream.on('error', () => {
             this.errorOccured = true
@@ -161,6 +182,7 @@ class PlayCommand extends ICommand{
                 })
             })
         }
+        */
     }
 
 }

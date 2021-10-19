@@ -220,7 +220,7 @@ client.on('messageCreate', async (message) => {
         break;
         case ';;stop':
             if(player != null){
-                player.stopPlaying()
+                player.stop()
             }
         default:
             if(message.content.startsWith(';;')){
