@@ -210,6 +210,30 @@ class SpotifyClient{
         })
     }
 
+    // Get a list of songs from today's top hits
+    async getTodaysTopHits(){
+        const playlistId = '37i9dQZF1DXcBWIGoYBM5M' // ID for the playlist of top hits
+        const url = `https://api.spotify.com/v1/playlists/${playlistId}`
+        const axiosConfig = {
+            method: 'get',
+            url,
+            headers: {
+                Authorization: `Bearer ${this.spotifyAccessToken}`
+            }
+        }
+        
+        return new Promise((resolve, reject) => {
+            this.makeRequest(axiosConfig)
+            .then(response => {
+                console.dir(response.data.tracks.items[0])
+                resolve(response.data.tracks.items)
+            })
+            .catch(err => {
+                reject(err)
+            })
+        })
+    }
+
 }
 
 module.exports = SpotifyClient

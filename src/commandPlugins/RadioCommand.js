@@ -116,6 +116,7 @@ class RadioCommand extends ICommand{
         }
 
         // Check for empty song query
+        /*
         if(options.commandText === null || options.commandText.length === 0){
             if(options.commandType == 'voice'){
                 tts.speak('Please say a song')
@@ -130,6 +131,7 @@ class RadioCommand extends ICommand{
             this.currentState = 'IDLE'
             return
         }
+        */
 
         // Clear the current song
         this.songQueue.clear()
@@ -234,7 +236,7 @@ class RadioCommand extends ICommand{
     // Create a message that says the current radio
     createRadioMessage(options){
         let message = []
-        if(this.spotifySongBase.artists?.length > 0){
+        if(this.spotifySongBase?.artists?.length > 0){
             message.push(`**Radio based on ${this.spotifySongBase.name} - ${this.spotifySongBase.artists[0].name}:**\n`)
         }
         else{
@@ -248,7 +250,7 @@ class RadioCommand extends ICommand{
             }
         })
         if(options.musicChannel){
-            options.musicChannel.send(message.join('').substr(0, 2000))
+            options.musicChannel.send(message.join('').substr(0, 1999))
             .then(sentMessage => {
                 this.radioMessage = sentMessage
             })
@@ -262,10 +264,21 @@ class RadioCommand extends ICommand{
             let spotifySong
             let recommendedSongs
             try{
-                spotifySong = await this.spotifyClient.getSong(songQuery)
-                this.spotifySongBase = spotifySong
-                const audioFeatures = await this.spotifyClient.getAudioFeatures(spotifySong.id)
-                recommendedSongs = await this.spotifyClient.getRecommendedSongs(spotifySong, audioFeatures, numSongs)
+                if(songQuery != null && songQuery.length > 0){
+                    spotifySong = await this.spotifyClient.getSong(songQuery)
+                    this.spotifySongBase = spotifySong
+                    const audioFeatures = await this.spotifyClient.getAudioFeatures(spotifySong.id)
+                    recommendedSongs = await this.spotifyClient.getRecommendedSongs(spotifySong, audioFeatures, numSongs)
+                }else{
+                    recommendedSongs = await this.spotifyClient.getTodaysTopHits()
+                    recommendedSongs = recommendedSongs.map((song) => {
+                        return {
+                            name: song.track.name,
+                            artists: song.track.artists
+                        }
+                    })
+                    this.spotifySongBase = {name: 'Today\'s Top Hits'}
+                }
             }catch(err){
                 reject(err)
                 return
