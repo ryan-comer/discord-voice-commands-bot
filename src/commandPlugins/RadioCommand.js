@@ -87,7 +87,8 @@ class RadioCommand extends ICommand{
 
     description(){
         return 'Generate and play a radio station based on similar songs from the requested song.\n' +
-        'Example: \';;radio you say run\''
+        'Example: \';;radio you say run\'\n' + 
+        '\';;radio\' by itself will generate a radio based on Today\'s Top Hits'
     }
 
     command(options){
