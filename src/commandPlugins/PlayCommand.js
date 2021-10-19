@@ -8,7 +8,6 @@ const tts = require('../tts')
 class PlayCommand extends ICommand{
     isStopping
     errorOccured
-    currentUrl
     songStartTime
     isPlaying
 
@@ -93,7 +92,6 @@ class PlayCommand extends ICommand{
     playSong(options){
         // Find the youtube URL
         const {videoUrl, videoName} = options
-        console.log(`Playing: ${videoUrl}\twith options: ${options.streamOptions}`)
 
         let audioStream
         try{
@@ -103,62 +101,36 @@ class PlayCommand extends ICommand{
             return
         }
 
-        audioStream.on('close', () => {
-            this.isPlaying = false
-
-            /*
-            // Check if the song was manually stopped
-            if(this.stoppingSong){
-                // Ignore restart attempt
-                this.stoppingSong = false
-                return
-            }
-
-            if(this.errorOccured && videoUrl === this.currentUrl){
-                this.errorOccured = false
-
-                // Recover the stream
-                const songStopTime = new Date()
-                const timeInSongMilli = (songStopTime.getTime() - this.songStartTime.getTime())
-                console.log(`Recovering stream for: ${videoUrl} at time: ${timeInSongMilli / 1000} seconds`)
-                this.playSong({
-                    ...options,
-                    streamOptions: {
-                        beginning: timeInSongMilli
-                    },
-                    recovered: true
-                })
-            }
-            */
-        })
-        audioStream.on('error', () => {
-            this.errorOccured = true
-        })
-
-        this.currentUrl = videoUrl
-        this.songStartTime = new Date()
-
-        this.isPlaying = true
-
-        if(options.recovered){
-            options.player.playStream(audioStream)
-            .catch(err => {
-                console.error(err)
-            })
-        }else{
+        if(options.commandType === 'voice'){
             options.musicChannel.send(`Playing: ${videoName}`)
             tts.speak(`Playing ${videoName}`)
             .then(ttsStream => {
                 options.player.playStream(ttsStream)
                 .then(() => {
+                    this.isPlaying = true
                     options.player.playStream(audioStream)
+                    .then(() => {
+                        this.isPlaying = false
+                    })
                     .catch(err => {
                         console.error(err)
+                        this.isPlaying = false
                     })
                 })
                 .catch(err => {
                     console.error(err)
                 })
+            })
+        }else if(options.commandType === 'text'){
+            options.musicChannel.send(`Playing: ${videoName}`)
+            this.isPlaying = true
+            options.player.playStream(audioStream)
+            .then(() => {
+                this.isPlaying = false
+            })
+            .catch(err => {
+                console.error(err)
+                this.isPlaying = false
             })
         }
     }

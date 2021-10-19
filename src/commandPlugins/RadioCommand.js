@@ -355,6 +355,10 @@ class RadioCommand extends ICommand{
                         this.playNextSong(options)
                     }
                 })
+                .catch(err => {
+                    console.error('Error playing song', err)
+                    this.playNextSong(options)
+                })
             })
             .catch(err => {
                 if(err.name === 'NoResultsError'){
@@ -370,19 +374,21 @@ class RadioCommand extends ICommand{
     // Start playing a youtube video
     async playSong(options){
         const {videoUrl, videoName} = options
-        let audioStream = null
-        try{
-            console.log(`Playing: ${videoUrl}`)
-            audioStream = stream(videoUrl, options.streamOptions)
-        }catch(err){
-            console.error('Error getting YouTube stream')
-            console.error(err)
-            this.playNextSong(options)
-            return
-        }
 
         return new Promise((resolve, reject) => {
-            audioStream.on('close', () => {
+            let audioStream = null
+            try{
+                console.log(`Playing: ${videoUrl}`)
+                audioStream = stream(videoUrl, options.streamOptions)
+            }catch(err){
+                console.error('Error getting YouTube stream', err)
+                return reject(err)
+            }
+
+            this.currentState = 'PLAYING'
+
+            options.player.playStream(audioStream)
+            .then(() => {
                 // Check if the song was manually stopped
                 if(this.currentState === 'STOPPING' || this.currentState === 'IDLE'){
                     // Ignore restart attempt
@@ -390,20 +396,13 @@ class RadioCommand extends ICommand{
                 }
 
                 // Song finished normally - signal next song
-                resolve({
+                return resolve({
                     nextSong: true
                 })
             })
-
-            try{
-                this.currentState = 'PLAYING'
-                options.player.playStream(audioStream)
-            }catch(err) {
-                console.log("Error playing YouTube stream")
-                console.error(err)
-                this.playNextSong(options)
-                return
-            }
+            .catch(err => {
+                reject(err)
+            })
         })
     }
 }

@@ -29,7 +29,7 @@ class Player {
 
     // Play an audio file
     playFile(audioFile){
-            console.log(`Playing: ${audioFile}`)
+        console.log(`Playing: ${audioFile}`)
         return this.playStream(createReadStream(audioFile))
     }
 
@@ -41,6 +41,9 @@ class Player {
             audioResource.playStream.on('close', () => {
                 this.isPlaying = false
                 resolve()
+            })
+            audioResource.playStream.on('error', err => {
+                reject(err)
             })
             this.audioPlayer.play(audioResource)
             this.isPlaying = true
