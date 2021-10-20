@@ -225,7 +225,6 @@ class SpotifyClient{
         return new Promise((resolve, reject) => {
             this.makeRequest(axiosConfig)
             .then(response => {
-                console.dir(response.data.tracks.items[0])
                 resolve(response.data.tracks.items)
             })
             .catch(err => {

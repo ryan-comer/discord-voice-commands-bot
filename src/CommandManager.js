@@ -74,10 +74,24 @@ class CommandManager{
         }
 
         if(options.author){
-            sendMessage({
-                channel: options.author.dmChannel,
-                message: helpMessageArray.join('')
-            })
+            // Check if you need to create the DM channel
+            if(!options.author.dmChannel){
+                // Create the DM channel
+                console.log(`Creating DM for ${options.author.id}`)
+                options.author.createDM()
+                .then(dmChannel => {
+                    sendMessage({
+                        channel: dmChannel,
+                        message: helpMessageArray.join('')
+                    })
+                })
+            }else{
+                // Send message normally
+                sendMessage({
+                    channel: options.author.dmChannel,
+                    message: helpMessageArray.join('')
+                })
+            }
         }
     }
 
