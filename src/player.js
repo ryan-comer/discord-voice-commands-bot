@@ -1,6 +1,7 @@
 const {
     createAudioPlayer,
     createAudioResource,
+    AudioPlayerStatus,
 } = require('@discordjs/voice')
 const { createReadStream, fstat, createWriteStream } = require('fs')
 
@@ -38,13 +39,22 @@ class Player {
         return new Promise(async (resolve, reject) => {
             // Play the audio resource
             const audioResource = createAudioResource(audioStream)
-            audioResource.playStream.on('close', () => {
-                this.isPlaying = false
-                resolve()
+
+            // Watch for state changes
+            this.audioPlayer.on('stateChange', (oldState, newState) => {
+                if(newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle){
+                    // Resource has finished playing
+                    this.isPlaying = false
+                    resolve()
+                }
             })
+
+            // Stream error occured
             audioResource.playStream.on('error', err => {
+                console.error('Stream closed', err)
                 reject(err)
             })
+
             this.audioPlayer.play(audioResource)
             this.isPlaying = true
         })

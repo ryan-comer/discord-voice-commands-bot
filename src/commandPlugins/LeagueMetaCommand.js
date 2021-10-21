@@ -110,6 +110,17 @@ class LeagueMetaCommand extends ICommand{
         })
         .catch(err => {
             console.error(err)
+            if(options.messageChannel){
+                sendMessage({
+                    channel: options.messageChannel,
+                    message: err.toString()
+                })
+                .then(message => {
+                    setTimeout(() => {
+                        deleteMessage(message)
+                    }, 60 * 1000)
+                })
+            }
         })
     }
 

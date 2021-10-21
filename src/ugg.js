@@ -60,6 +60,12 @@ class Ugg{
             .then(response => {
                 // Get the raw JSON
                 const rawJson = this.regexChampionData(response.data.toString())
+
+                if(!rawJson){
+                    // Error pulling data
+                    return reject('Error pulling champion data')
+                }
+
                 const parsedData = this.parseChampionData(rawJson)
                 resolve(parsedData)
             })
