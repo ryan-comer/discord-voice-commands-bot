@@ -5,12 +5,15 @@ const tts = require('./tts')
 const {sendMessage, deleteMessage} = require('./utils')
 const { InviteStageInstance } = require('discord.js')
 
+const EventEmitter = require('events')
+
 class CommandManager{
     pluginMap = new Map()
     loadedPlugins = []
+    commandManagerEvents = null
 
     constructor(){
-
+        this.commandManagerEvents = new EventEmitter()
     }
 
     addPluginHandle(commandWord, plugin){
@@ -100,6 +103,12 @@ class CommandManager{
         const commandArray = command.split(' ')
         const commandWord = commandArray.splice(0, 1)[0]
         const commandText = commandArray.join(' ')
+
+        // Fire the event
+        this.commandManagerEvents.emit('command', {
+            ...options,
+            commandWord
+        })
 
         // Special case - help
         if(command === 'help'){

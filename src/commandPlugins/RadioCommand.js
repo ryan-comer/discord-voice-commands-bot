@@ -79,6 +79,18 @@ class RadioCommand extends ICommand{
         this.songStartTime = null
         this.spotifySongBase = null
         this.currentState = 'IDLE'
+
+        // Register for events
+        options.commandManager.commandManagerEvents.on('command', options => {
+            switch(options.commandWord){
+                case 'stop':
+                    this.stopPlaying(options)
+                break
+                case 'skip':
+                    this.skipSong(options)
+                break
+            }
+        })
     }
 
     name(){
@@ -193,6 +205,11 @@ class RadioCommand extends ICommand{
         }
 
         return true
+    }
+
+    // Skip the currently playing song
+    skipSong(options){
+        options.player.stopPlaying(options)
     }
 
     // Stop playing the radio

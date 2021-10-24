@@ -32,6 +32,7 @@ let botChannel
 
 // Add command handlers for command words
 function registerCommands(options){
+    options.commandManager = commandManager
     commandManager.addPluginHandle('play', new PlayCommand(options))
     commandManager.addPluginHandle(['who', 'what', 'when', 'where', 'why', 'how', 'do', 'is', 'was', 'will', 'would', 
     'can', 'could', 'did', 'should', 'whose', 'which', 'whom', 'are'], new QuestionCommand(options))
