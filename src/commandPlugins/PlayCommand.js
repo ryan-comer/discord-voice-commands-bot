@@ -43,7 +43,7 @@ class PlayCommand extends ICommand{
             return
         }
 
-        youtube.getYoutubeVideoUrl(options.commandText)
+        youtube.getYoutubeVideoUrl(`${options.commandText} lyrics`)
         .then(response => {
             this.playSong({
                 ...options,

@@ -367,7 +367,7 @@ class RadioCommand extends ICommand{
         const songQuery = (song.artists?.length > 0) ? `${song.name} by ${song.artists[0].name}` : `${song.name}`
 
         return new Promise((resolve, reject) => {
-            youtube.getYoutubeVideoUrl(songQuery)
+            youtube.getYoutubeVideoUrl(`${songQuery} lyrics`)   // Append 'lyrics' to get lyric videos
             .then(results => {
                 if(!results){
                     options.botChannel.send(`No results for radio query: ${songQuery}`)
