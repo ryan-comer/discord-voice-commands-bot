@@ -35,6 +35,9 @@ function registerCommands(options){
     options.commandManager = commandManager
     commandManager.addPluginHandle('play', new PlayCommand(options))
     commandManager.addPluginHandle('plate', new PlayCommand(options))   // Temporary fix for incorrect play recognition
+    commandManager.addPluginHandle('lay', new PlayCommand(options))   // Temporary fix for incorrect play recognition
+    commandManager.addPluginHandle('late', new PlayCommand(options))   // Temporary fix for incorrect play recognition
+    commandManager.addPluginHandle('way', new PlayCommand(options))   // Temporary fix for incorrect play recognition
     commandManager.addPluginHandle(['who', 'what', 'when', 'where', 'why', 'how', 'do', 'is', 'was', 'will', 'would', 
     'can', 'could', 'did', 'should', 'whose', 'which', 'whom', 'are'], new QuestionCommand(options))
     commandManager.addPluginHandle('redbull', new RedbullCommand(options))
