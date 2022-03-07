@@ -113,7 +113,7 @@ class FreeGamesCommand extends ICommand{
         const newPosts = []
         const freeGameList = await this.getFreeGamesList()
         freeGameList.forEach(post => {
-            if(!this.lastScanResult.map(post2 => post2.title.trim()).includes(post.title.trim())){
+            if(!this.lastScanResult.map(post2 => post2.link.trim()).includes(post.link.trim())){
                 // New post
                 newPosts.push(post)
             }
