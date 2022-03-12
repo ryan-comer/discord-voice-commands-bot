@@ -16,6 +16,7 @@ const rssUrls = [
 class FreeGamesCommand extends ICommand{
     isRunning
     lastScanResult
+    seenArticlesSet
     freeGamesChannel
 
     constructor(options){
@@ -23,6 +24,7 @@ class FreeGamesCommand extends ICommand{
 
         this.isRunning = true
         this.lastScanResult = []
+        this.seenArticlesSet = new Set()
 
         // Get the channels
         utils.getChannelFromClient({
@@ -113,7 +115,7 @@ class FreeGamesCommand extends ICommand{
         const newPosts = []
         const freeGameList = await this.getFreeGamesList()
         freeGameList.forEach(post => {
-            if(!this.lastScanResult.map(post2 => post2.title.trim()).includes(post.title.trim())){
+            if(!this.seenArticlesSet.has(post.link)){
                 // New post
                 newPosts.push(post)
             }
@@ -136,7 +138,10 @@ class FreeGamesCommand extends ICommand{
             })
         }
         
-        this.lastScanResult = freeGameList
+        // Add new posts to the set
+        newPosts.forEach(post => {
+            this.seenArticlesSet.add(post.link)
+        })
 
         // Scan again after a time
         setTimeout(() => {
