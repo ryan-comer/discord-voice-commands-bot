@@ -120,10 +120,12 @@ function connectToChannel(channel, id){
     })
 
     listener.on('command', (userId, command) => {
+        const member = currentChannel.members.get(userId)
+
         processCommand({
             command,
             userId,
-            member: user,
+            member,
             commandType: 'voice'
         })
     })
