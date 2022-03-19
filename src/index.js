@@ -48,6 +48,7 @@ function registerCommands(options){
     commandManager.addPluginHandle('chess', new ChessCommand(options))
     commandManager.addPluginHandle('millionaire', new MillionaireCommand(options))
     commandManager.addPluginHandle('bye', new ByeCommand(options))
+    commandManager.addPluginHandle('by', new ByeCommand(options))
 }
 
 
