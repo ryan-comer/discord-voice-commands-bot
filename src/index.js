@@ -17,6 +17,7 @@ const FreeGamesCommand = require('./commandPlugins/FreeGamesCommand')
 const LeagueMetaCommand = require('./commandPlugins/LeagueMetaCommand')
 const ChessCommand = require('./commandPlugins/ChessCommand')
 const MillionaireCommand = require('./commandPlugins/MillionaireCommand')
+const ByeCommand = require('./commandPlugins/ByeCommand')
 
 const tts = require('./tts')
 
@@ -46,6 +47,7 @@ function registerCommands(options){
     commandManager.addPluginHandle('leaguemeta', new LeagueMetaCommand(options))
     commandManager.addPluginHandle('chess', new ChessCommand(options))
     commandManager.addPluginHandle('millionaire', new MillionaireCommand(options))
+    commandManager.addPluginHandle('bye', new ByeCommand(options))
 }
 
 
@@ -120,6 +122,7 @@ function connectToChannel(channel, id){
         processCommand({
             command,
             userId,
+            member: user,
             commandType: 'voice'
         })
     })
@@ -187,7 +190,8 @@ function processCommand(options){
         ...options,
         musicChannel: musicChannel,
         botChannel: botChannel,
-        player: player
+        player: player,
+        client
     })
 }
 
