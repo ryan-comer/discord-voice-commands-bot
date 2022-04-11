@@ -154,12 +154,17 @@ class FreeGamesCommand extends ICommand{
         const postsList = []
 
         for(const rssUrl of rssUrls){
-            const feed = await parser.parseURL(rssUrl)
-            feed.items.forEach(item => {
-                if(item.title.toLowerCase().includes('free')){
-                    postsList.push(item)
-                }
-            })
+            try{
+                const feed = await parser.parseURL(rssUrl)
+                feed.items.forEach(item => {
+                    if(item.title.toLowerCase().includes('free')){
+                        postsList.push(item)
+                    }
+                })
+            }
+            catch(err){
+                console.error(`Error getting RSS feed ${rssUrl}: ${err}`)
+            }
         }
 
         return postsList
