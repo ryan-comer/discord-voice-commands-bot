@@ -115,6 +115,10 @@ class FreeGamesCommand extends ICommand{
         const newPosts = []
         const freeGameList = await this.getFreeGamesList()
         freeGameList.forEach(post => {
+            if(!post.link || post.link.length === 0){
+                return
+            }
+
             if(!this.seenArticlesSet.has(post.link)){
                 // New post
                 newPosts.push(post)
@@ -126,6 +130,10 @@ class FreeGamesCommand extends ICommand{
             newPosts.forEach(post => console.log(post.link))
             const message = []
             for(const post of newPosts){
+                if(!post.title || !post.link){
+                    continue
+                }
+
                 message.push(post.title)
                 message.push(' - ')
                 message.push(post.link)
@@ -157,6 +165,10 @@ class FreeGamesCommand extends ICommand{
             try{
                 const feed = await parser.parseURL(rssUrl)
                 feed.items.forEach(item => {
+                    if(!item.title || item.title.length === 0){
+                        return
+                    }
+
                     if(item.title.toLowerCase().includes('free')){
                         postsList.push(item)
                     }
