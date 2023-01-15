@@ -18,6 +18,7 @@ const LeagueMetaCommand = require('./commandPlugins/LeagueMetaCommand')
 const ChessCommand = require('./commandPlugins/ChessCommand')
 const MillionaireCommand = require('./commandPlugins/MillionaireCommand')
 const ByeCommand = require('./commandPlugins/ByeCommand')
+const BirthdayCommand = require('./commandPlugins/BirthdayCommand')
 
 const tts = require('./tts')
 
@@ -30,6 +31,7 @@ let commandManager = new CommandManager()
 // Handle to the music channel
 let musicChannel
 let botChannel
+let birthdayChannel
 
 // Add command handlers for command words
 function registerCommands(options){
@@ -49,6 +51,7 @@ function registerCommands(options){
     commandManager.addPluginHandle('millionaire', new MillionaireCommand(options))
     commandManager.addPluginHandle('bye', new ByeCommand(options))
     commandManager.addPluginHandle('by', new ByeCommand(options))
+    commandManager.addPluginHandle('birthday', new BirthdayCommand(options))
 }
 
 
@@ -64,9 +67,12 @@ async function findTextChannels(guild){
                 if(value.name == process.env.BOT_CHANNEL_NAME){
                     botChannel = value
                 }
+                if(value.name == process.env.BIRTHDAY_CHANNEL_NAME){
+                    birthdayChannel = value
+                }
             }
+            resolve()
         })
-        resolve()
     })
 }
 
@@ -193,14 +199,29 @@ function processCommand(options){
         ...options,
         musicChannel: musicChannel,
         botChannel: botChannel,
+        birthdayChannel: birthdayChannel,
         player: player,
         client
     })
 }
 
-client.on('ready', readyClient => {
+client.on('ready', async readyClient => {
     console.log(`Logged in as ${client.user.tag}`);
-    registerCommands({client: readyClient})
+
+    // Get the primary guild
+    const guilds = await client.guilds.fetch()
+    let guild = guilds.values().next().value
+    guild = await client.guilds.fetch(guild.id)
+
+    // Get the text channels the bot interacts with
+    await findTextChannels(guild)
+
+    registerCommands({
+        client: readyClient,
+        birthdayChannel,
+        botChannel,
+        musicChannel
+    })
 });
 
 // Interactions with chat messages
@@ -216,7 +237,7 @@ client.on('messageCreate', async (message) => {
     }
 
     if(message.guild){
-    await findTextChannels(message.guild)   // Get the text channels the bot interacts with
+        await findTextChannels(message.guild)   // Get the text channels the bot interacts with
     }
 
     switch(message.content.toLowerCase()){
