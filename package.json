@@ -5,7 +5,11 @@
   "repository": "https://github.com/ryan-comer/discord-voice-commands-bot.git",
   "author": "Ryan Comer <ryancomer94@gmail.com>",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "mocha"
+  },
   "dependencies": {
     "@discordjs/opus": "^0.6.0",
     "@discordjs/rest": "^0.1.0-canary.0",
@@ -41,5 +45,8 @@
     "youtube-search": "^1.1.6",
     "youtube-search-api": "^1.0.10",
     "ytdl-core": "^4.9.1"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0"
   }
 }
