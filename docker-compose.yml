@@ -1,0 +1,9 @@
+version: '2.0'
+services:
+  voice-commands-bot:
+    image: voice-commands-bot
+    container_name: voice-commands-bot
+    restart: always
+    volumes:
+      - ./data:/data
+      - ./recordings:/usr/src/voice-commands-bot/recordings

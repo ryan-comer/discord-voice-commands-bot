@@ -3,7 +3,7 @@ const SqliteDatabase = require('../database/SqliteDatabase')
 
 const fs = require('fs')
 
-const databasePath = './data'
+const databasePath = '/data'
 const databaseFile = 'birthday.db'
 
 class BirthdayCommand extends ICommand {
