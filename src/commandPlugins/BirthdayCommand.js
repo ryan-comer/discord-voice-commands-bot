@@ -114,8 +114,9 @@ class BirthdayCommand extends ICommand {
 
     // Get all the users that have birthdays today
     getBirthdaysToday() {
-        // Get the current date
-        let date = new Date()
+        // Date object initialized as per New Zealand timezone. Returns a datetime string
+        let nz_date_string = new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
+        let date = new Date(nz_date_string);
         let month = date.getMonth() + 1
         let day = date.getDate()
 
@@ -125,7 +126,8 @@ class BirthdayCommand extends ICommand {
 
     // Get the notification status of the user
     getNotificationStatus(user) {
-        return this.db.GetRow('birthday_notifications', '*', `user = "${user}"`)
+        // Return the notification status of the user for this year
+        return this.db.GetRow('birthday_notifications', '*', `user = "${user}" AND year = ${new Date().getFullYear()}`)
     }
 
     // Worker function to check for birthdays
@@ -146,21 +148,12 @@ class BirthdayCommand extends ICommand {
                     })
                 }
 
-                // Wait for 5 seconds
-                await new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        resolve()
-                    }, 5000)
-                })
-
                 // Wait for 1 hour
-                /*
                 await new Promise((resolve, reject) => {
                     setTimeout(() => {
                         resolve()
                     }, 3600000)
                 })
-                */
             }
         })
     }

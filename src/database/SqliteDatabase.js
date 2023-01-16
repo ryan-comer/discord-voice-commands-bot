@@ -161,6 +161,11 @@ class SqliteDatabase extends IDatabase {
             })
         })
     }
+
+    // Delete many rows in the database
+    DeleteRows(tableName, where) {
+        return this.DeleteRow(tableName, where)
+    }
 }
 
 module.exports = SqliteDatabase
