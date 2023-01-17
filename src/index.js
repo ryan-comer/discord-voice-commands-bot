@@ -4,7 +4,15 @@ require('dotenv-defaults').config()
 const { Client, Events, GatewayIntentBits } = require("discord.js")
 
 // Create a new client instance
-const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates]})
+const client = new Client({intents: [
+    GatewayIntentBits.Guilds, 
+    GatewayIntentBits.GuildMessages, 
+    GatewayIntentBits.MessageContent, 
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.DirectMessageTyping,
+    GatewayIntentBits.DirectMessageReactions,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMembers]})
 
 const { joinVoiceChannel} = require('@discordjs/voice')
 const Player = require('./player.js')
@@ -48,8 +56,8 @@ function registerCommands(options){
     'can', 'could', 'did', 'should', 'whose', 'which', 'whom', 'are'], new QuestionCommand(options))
     commandManager.addPluginHandle('redbull', new RedbullCommand(options))
     commandManager.addPluginHandle('radio', new RadioCommand(options))
-    commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
-    commandManager.addPluginHandle('leaguemeta', new LeagueMetaCommand(options))
+    //commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
+    //commandManager.addPluginHandle('leaguemeta', new LeagueMetaCommand(options))
     commandManager.addPluginHandle('chess', new ChessCommand(options))
     commandManager.addPluginHandle('millionaire', new MillionaireCommand(options))
     commandManager.addPluginHandle('bye', new ByeCommand(options))
