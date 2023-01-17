@@ -11,18 +11,18 @@
     "test": "mocha"
   },
   "dependencies": {
-    "@discordjs/opus": "^0.6.0",
-    "@discordjs/rest": "^0.1.0-canary.0",
-    "@discordjs/voice": "^0.6.0",
+    "@discordjs/opus": "^0.9.0",
+    "@discordjs/rest": "^1.5.0",
+    "@discordjs/voice": "^0.14.0",
     "@google-cloud/speech": "^4.8.0",
     "@google-cloud/text-to-speech": "^3.3.1",
-    "@picovoice/porcupine-node": "^1.9.2",
+    "@picovoice/porcupine-node": "^2.1.7",
     "axios": "^0.21.4",
     "chess.js": "^0.12.0",
     "cookie": "^0.4.1",
-    "cron": "^1.8.2",
-    "discord-api-types": "^0.23.1",
-    "discord.js": "^13.1.0",
+    "cron": "^2.2.0",
+    "discord-api-types": "^0.37.28",
+    "discord.js": "^14.7.1",
     "dotenv": "^10.0.0",
     "dotenv-defaults": "^3.0.0",
     "fen-chess-board": "^2.0.5",
@@ -41,10 +41,9 @@
     "text-table": "^0.2.0",
     "wav": "^1.0.2",
     "wavefile": "^11.0.0",
-    "youtube-audio-stream": "^0.3.16",
     "youtube-search": "^1.1.6",
     "youtube-search-api": "^1.0.10",
-    "ytdl-core": "^4.9.1"
+    "ytdl-core": "^4.11.2"
   },
   "devDependencies": {
     "mocha": "^10.2.0"

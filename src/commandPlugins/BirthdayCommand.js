@@ -70,7 +70,7 @@ class BirthdayCommand extends ICommand {
     }
 
     wakeWordDetected(options) {
-        // do something
+        return true
     }
     description() {
         return 'This command allows you to set your birthday and get a reminder on your birthday. Type ;;birthday MONTH DAY to set your birthday.'

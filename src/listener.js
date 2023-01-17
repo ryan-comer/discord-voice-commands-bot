@@ -8,10 +8,10 @@ const prism = require('prism-media')
 const { FileWriter } = require('wav')
 const { OpusEncoder } = require('@discordjs/opus')
 
-const Porcupine = require('@picovoice/porcupine-node')
 const {
-    JARVIS
-} = require('@picovoice/porcupine-node/builtin_keywords')
+    Porcupine,
+    BuiltinKeyword,
+} = require ('@picovoice/porcupine-node')
 
 const stt = require('./stt')
 
@@ -93,7 +93,7 @@ class Listener extends EventEmitter {
 
         this.userFrameAccumulators[userId] = []
 
-        const handle = new Porcupine([JARVIS], [parseFloat(process.env.WAKE_WORD_SENSITIVITY)])
+        const handle = new Porcupine(process.env.PORCUPINE_ACCESS_KEY, [BuiltinKeyword.JARVIS], [parseFloat(process.env.WAKE_WORD_SENSITIVITY)])
         const audioReceiveStream = this.voiceConnection.receiver.subscribe(userId)
             .pipe(new prism.opus.Decoder({
                 rate: handle.sampleRate,

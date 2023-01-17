@@ -1,7 +1,7 @@
 const path = require('path')
 const ICommand = require('./ICommand')
 
-const stream = require('youtube-audio-stream')
+const ytdl = require('ytdl-core')
 const youtube = require('../youtube')
 const tts = require('../tts')
 
@@ -95,7 +95,7 @@ class PlayCommand extends ICommand{
 
         let audioStream
         try{
-            audioStream = stream(videoUrl, options.streamOptions)
+            audioStream = ytdl(videoUrl, { filter: 'audioonly' })
         }catch(error){
             console.error(`Error getting YouTube stream: ${error}`)
             return

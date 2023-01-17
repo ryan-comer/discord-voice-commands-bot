@@ -2,8 +2,8 @@ const ICommand = require('./ICommand')
 const tts = require('../tts')
 const SpotifyClient = require('../spotify')
 const youtube = require('../youtube')
-const stream = require('youtube-audio-stream')
 const { deleteMessage } = require('../utils')
+const ytdl = require('ytdl-core')
 
 
 // Helper function to shuffle the array
@@ -410,7 +410,7 @@ class RadioCommand extends ICommand{
             let audioStream = null
             try{
                 console.log(`Playing: ${videoUrl}`)
-                audioStream = stream(videoUrl, options.streamOptions)
+                audioStream = ytdl(videoUrl, { filter: 'audioonly' })
             }catch(err){
                 console.error('Error getting YouTube stream', err)
                 return reject(err)

@@ -1,11 +1,14 @@
 require('dotenv-defaults').config()
 
-const { Client, Intents, VoiceChannel } = require("discord.js")
+// Require the necessary discord.js classes
+const { Client, Events, GatewayIntentBits } = require("discord.js")
+
+// Create a new client instance
+const client = new Client({intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates]})
+
 const { joinVoiceChannel} = require('@discordjs/voice')
-const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.DIRECT_MESSAGES], partials: ['MESSAGE', 'CHANNEL']})
 const Player = require('./player.js')
 const Listener = require('./listener.js')
-const TextToSpeech = require("./tts.js")
 
 // Commands
 const CommandManager = require('./CommandManager.js')
@@ -205,7 +208,7 @@ function processCommand(options){
     })
 }
 
-client.on('ready', async readyClient => {
+client.on(Events.ClientReady, async readyClient => {
     console.log(`Logged in as ${client.user.tag}`);
 
     // Get the primary guild
