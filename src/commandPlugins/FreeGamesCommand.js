@@ -3,47 +3,80 @@ const Parser = require('rss-parser')
 const parser = new Parser()
 
 const utils = require('../utils')
+const fs = require('fs')
+
+const SqliteDatabase = require('../database/SqliteDatabase')
 
 // RSS feeds to pull free games from
-const rssUrls = [
+const RSS_URLS = [
     'https://www.eurogamer.net/?format=rss',
     'http://feeds.ign.com/ign/games-all',
     'https://www.gameinformer.com/rss.xml',
-    'https://www.pcgamer.com/rss/'
+    'https://www.pcgamer.com/rss/',
+    'https://kotaku.com/rss',
+    'https://www.gamespot.com/feeds/mashup',
+    'https://www.rockpapershotgun.com/feed/',
+    'https://www.pcgamesn.com/feed'
 ]
+
+const SEEN_POSTS_TABLE_NAME = 'seen_posts'
+const DATABASE_DIRECTORY = '/data'
+const DATABASE_FILE = 'freeGames.sqlite'
 
 // Command to find free games and post updates when free games are available
 class FreeGamesCommand extends ICommand{
     isRunning
-    lastScanResult
-    seenArticlesSet
     freeGamesChannel
+    db
 
     constructor(options){
         super(options)
 
-        this.isRunning = true
-        this.lastScanResult = []
-        this.seenArticlesSet = new Set()
-
-        // Get the channels
-        utils.getChannelFromClient({
-            client: options.client,
-            channelName: process.env.FREE_GAMES_CHANNEL_NAME
-        })
-        .then(channel => {
-            if(!channel){
-                console.log(`No ${process.env.FREE_GAMES_CHANNEL_NAME} found. Not scanning for free games`)
-                return
+        // Check for the database options
+        if(options.database){
+            this.db = options.database
+        } else if (options.databasePath) {
+            this.db = new SqliteDatabase({path: options.databasePath})
+        } else {
+            // Create the database path
+            if (!fs.existsSync(DATABASE_DIRECTORY)){
+                fs.mkdirSync(DATABASE_DIRECTORY);
             }
 
-            // Scan once to start
-            this.getFreeGamesList()
-            .then(posts => {
-                this.lastScanResult = posts
-                this.scanForFreeGames(channel)
+            // Create the database
+            this.db = new SqliteDatabase({path: DATABASE_DIRECTORY + '/' + DATABASE_FILE})
+        }
+
+        this.initSeenPostsTable()
+
+        // Check if the free games channel exists
+        if (!process.env.FREE_GAMES_CHANNEL_NAME) {
+            console.log('No FREE_GAMES_CHANNEL_NAME environment variable found. Not scanning for free games')
+            return
+        }
+
+        // Get the channels
+        if (options?.client) {
+            utils.getChannelFromClient({
+                client: options.client,
+                channelName: process.env.FREE_GAMES_CHANNEL_NAME
             })
-        })
+            .then(channel => {
+                // Check if the server has the channel
+                if(!channel){
+                    console.log(`No ${process.env.FREE_GAMES_CHANNEL_NAME} found. Not scanning for free games`)
+                    return
+                }
+
+                this.freeGamesChannel = channel
+
+                // Start the scanning worker
+                this.isRunning = true
+                this.scanFreeGamesWorker()
+            })
+        } else {
+            console.log('No client found. Not scanning for free games')
+        }
     }
 
     name(){
@@ -60,116 +93,84 @@ class FreeGamesCommand extends ICommand{
     }
 
     command(options){
-        let message = []
-        message.push('**Free Games:**\n')
 
-        // Delete command message after 60 seconds
-        if(options.message){
-            setTimeout(() => {
-                utils.deleteMessage(options.message)
-            }, 60 * 1000)
-        }
-
-        // Get a list of free games
-        this.getFreeGamesList()
-        .then(posts => {
-            // Construct the message
-            for(const post of posts){
-                message.push(post.title)
-                message.push(' - ')
-                message.push(post.link)
-                message.push('\n')
-            }
-
-            // Post the messages
-            if(options.messageChannel){
-                options.messageChannel.send(message.join(' ').substr(0, 2000))
-                .then(message => {
-                    setTimeout(() => {
-                        utils.deleteMessage(message)
-                    }, 60 * 1000)
-                })
-            }
-            else if(options.botChannel){
-                options.botChannel.send(message.join(' ').substr(0, 2000))
-                .then(message => {
-                    setTimeout(() => {
-                        utils.deleteMessage(message)
-                    }, 60 * 1000)
-                })
-            }
-        })
     }
 
     close(options){
 
     }
 
-    // Start a thread to alert when games are free
-    async scanForFreeGames(channel){
-        if(!this.isRunning){
-            // Stop scanning
-            return
-        }
+    // Prune posts older than a passed in date
+    async pruneOldPosts(date=new Date()){
+        // Delete the old posts
+        await this.db.DeleteRows(SEEN_POSTS_TABLE_NAME, `date < '${date.toISOString()}'`)
+    }
 
+    // Initialize the seen posts database table
+    async initSeenPostsTable(){
+        // Create the table
+        await this.db.CreateTable(SEEN_POSTS_TABLE_NAME, 'id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT NOT NULL, date TEXT NOT NULL')
+    }
+
+    // Hash a post to a unique string
+    hashPost(post){
+        return post.guid
+    }
+
+    // Add the post to the seen posts database
+    async markPostsAsSeen(posts, date=new Date()){
+        posts.forEach(async post => {
+            // Hash the post
+            const hash = this.hashPost(post)
+
+            // Add the post to the database
+            await this.db.AddRow(SEEN_POSTS_TABLE_NAME, 'hash, date', `'${hash}', '${date.toISOString()}'`)
+        })
+    }
+
+    // Check if the post has been seen
+    async hasPostBeenSeen(post){
+        // Find the post in the database
+        const hash = this.hashPost(post)
+        const result = await this.db.GetRow(SEEN_POSTS_TABLE_NAME, '*', `hash = '${hash}'`)
+        
+        // Check if the post has been seen
+        return result !== undefined && result !== null
+    }
+
+    // Filter out the posts that have already been seen
+    async filterOutSeenPosts(posts){
         const newPosts = []
-        const freeGameList = await this.getFreeGamesList()
-        freeGameList.forEach(post => {
+        for(const post of posts){
             if(!post.link || post.link.length === 0){
-                return
+                continue
             }
 
-            if(!this.seenArticlesSet.has(post.link)){
+            if(!(await this.hasPostBeenSeen(post))){
                 // New post
                 newPosts.push(post)
             }
-        })
-
-        if(newPosts.length > 0){
-            console.log('Found new free games:')
-            newPosts.forEach(post => console.log(post.link))
-            const message = []
-            for(const post of newPosts){
-                if(!post.title || !post.link){
-                    continue
-                }
-
-                message.push(post.title)
-                message.push(' - ')
-                message.push(post.link)
-                message.push('\n')
-            }
-
-            utils.sendMessage({
-                channel,
-                message: message.join(' ')
-            })
         }
-        
-        // Add new posts to the set
-        newPosts.forEach(post => {
-            this.seenArticlesSet.add(post.link)
-        })
 
-        // Scan again after a time
-        setTimeout(() => {
-            this.scanForFreeGames(channel)
-        }, 5 * 60 * 1000)
+        return newPosts
     }
 
-    // Get a list of free games that are available
-    async getFreeGamesList(){
+    // Get a list of free game articles from RSS feeds
+    async getFreeGamesList(rssUrls){
         const postsList = []
 
+        // Loop through the RSS URLs
         for(const rssUrl of rssUrls){
             try{
                 const feed = await parser.parseURL(rssUrl)
                 feed.items.forEach(item => {
+                    // Skip if no title
                     if(!item.title || item.title.length === 0){
                         return
                     }
 
-                    if(item.title.toLowerCase().includes('free')){
+                    // Check if the title contains 'free'
+                    if(item.title.toLowerCase().split(' ').includes('free')){
                         postsList.push(item)
                     }
                 })
@@ -182,6 +183,47 @@ class FreeGamesCommand extends ICommand{
         return postsList
     }
 
+    // Send a message to the free games channel
+    sendFreeGamesMessage(newPosts){
+        const message = []
+        for(const post of newPosts){
+            if(!post.title || !post.link){
+                continue
+            }
+
+            message.push(post.title)
+            message.push(' - ')
+            message.push(post.link)
+            message.push('\n')
+        }
+
+        utils.sendMessage({
+            channel: this.freeGamesChannel,
+            message: message.join(' ')
+        })
+    }
+
+    // Worker function to scan for free games
+    async scanFreeGamesWorker(){
+        while (this.isRunning) {
+            // Get a list of free games
+            const freeGameList = await this.getFreeGamesList(RSS_URLS)
+
+            // Check if there are any new free games
+            const newPosts = await this.filterOutSeenPosts(freeGameList)
+            if (newPosts.length > 0) {
+                console.log(`Found ${newPosts.length} new free games`)
+            }
+
+            if(newPosts.length > 0){
+                this.sendFreeGamesMessage(newPosts)
+                await this.markPostsAsSeen(newPosts)
+            }
+
+            // Wait 5 minutes
+            await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000))
+        }
+    }
 }
 
 module.exports = FreeGamesCommand

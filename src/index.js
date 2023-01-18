@@ -56,7 +56,7 @@ function registerCommands(options){
     'can', 'could', 'did', 'should', 'whose', 'which', 'whom', 'are'], new QuestionCommand(options))
     commandManager.addPluginHandle('redbull', new RedbullCommand(options))
     commandManager.addPluginHandle('radio', new RadioCommand(options))
-    //commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
+    commandManager.addPluginHandle('freegames', new FreeGamesCommand(options))
     //commandManager.addPluginHandle('leaguemeta', new LeagueMetaCommand(options))
     commandManager.addPluginHandle('chess', new ChessCommand(options))
     commandManager.addPluginHandle('millionaire', new MillionaireCommand(options))
