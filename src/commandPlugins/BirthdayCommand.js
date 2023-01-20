@@ -50,6 +50,12 @@ class BirthdayCommand extends ICommand {
         let month = parseInt(birthdaySplit[0])
         let day = parseInt(birthdaySplit[1])
 
+        // Check if the month and day are numbers
+        if(isNaN(month) || isNaN(day)) {
+            options.messageChannel.send('Month or day are invalid, they must be numbers. Type ;;birthday MONTH DAY to set your birthday.')
+            return
+        }
+
         // Check if the month and day are valid
         if(month < 1 || month > 12 || day < 1 || day > 31){
             options.messageChannel.send('Month or day are invalid. Type ;;birthday MONTH DAY to set your birthday.')
